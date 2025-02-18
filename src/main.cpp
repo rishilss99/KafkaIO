@@ -94,6 +94,8 @@ int main(int argc, char *argv[])
     send(client_fd, &corr_id, sizeof(corr_id), 0);
     std::cout << "Send client response\n";
 
+    while(true) {}
+
     close(client_fd);
 
     close(server_fd);
