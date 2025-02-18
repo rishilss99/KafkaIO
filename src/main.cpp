@@ -82,18 +82,17 @@ int main(int argc, char *argv[])
     int client_fd = accept(server_fd, reinterpret_cast<struct sockaddr *>(&client_addr), &client_addr_len);
     std::cout << "Client connected\n";
 
-    std::vector<char> request(20);
-    int read_bytes = recv(client_fd, request.data(), request.size(), 0);
-    std::cout << "Read client's request\n";
+    // std::vector<char> request(20);
+    // int read_bytes = recv(client_fd, request.data(), request.size(), 0);
+    // std::cout << "Read client's request\n";
 
-    std::vector<char> response(8, '\0');
-    response[7] = 0x07;
     // int corr_id = swap_endian(7);
     // std::memcpy(reinterpret_cast<void *>(response.data() + 4), reinterpret_cast<void *>(&corr_id), sizeof(corr_id));
-    int write_bytes = send(client_fd, response.data(), response.size(), 0);
+    int32_t msg_size = htobe32(0);
+    int32_t corr_id = htobe32(7);
+    send(client_fd, &msg_size, sizeof(msg_size), 0);
+    send(client_fd, &corr_id, sizeof(corr_id), 0);
     std::cout << "Send client response\n";
-
-    while(true) {}
 
     close(client_fd);
 
