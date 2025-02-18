@@ -82,7 +82,8 @@ int main(int argc, char *argv[])
     int client_fd = accept(server_fd, reinterpret_cast<struct sockaddr *>(&client_addr), &client_addr_len);
     std::cout << "Client connected\n";
 
-    int read_bytes = recv(client_fd, NULL, 0, 0);
+    std::vector<char> request(20);
+    int read_bytes = recv(client_fd, request.data(), request.size(), 0);
     std::cout << "Read client's request\n";
 
     std::vector<char> response(8, '\0');
