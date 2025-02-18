@@ -87,8 +87,9 @@ int main(int argc, char *argv[])
     std::cout << "Read client's request\n";
 
     std::vector<char> response(8, '\0');
-    int corr_id = swap_endian(7);
-    std::memcpy(reinterpret_cast<void *>(response.data() + 4), reinterpret_cast<void *>(&corr_id), sizeof(corr_id));
+    response[7] = 0x07;
+    // int corr_id = swap_endian(7);
+    // std::memcpy(reinterpret_cast<void *>(response.data() + 4), reinterpret_cast<void *>(&corr_id), sizeof(corr_id));
     int write_bytes = send(client_fd, response.data(), response.size(), 0);
     std::cout << "Send client response\n";
 
