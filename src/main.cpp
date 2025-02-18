@@ -93,6 +93,8 @@ int main(int argc, char *argv[])
     int write_bytes = send(client_fd, response.data(), response.size(), 0);
     std::cout << "Send client response\n";
 
+    while(true) {}
+
     close(client_fd);
 
     close(server_fd);
