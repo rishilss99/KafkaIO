@@ -16,6 +16,7 @@ void handleClient(int client_fd)
     response_msg_size = htobe32(0);
     send(client_fd, &response_msg_size, sizeof(response_msg_size), 0);
     send(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
+    request_api_ver = be32toh(request_api_ver);
     if (supported_api_versions.find(request_api_ver) != supported_api_versions.end())
     {
         error_code = 0;
@@ -24,6 +25,7 @@ void handleClient(int client_fd)
     {
         error_code = 35;
     }
+    error_code = htobe16(error_code);
     send(client_fd, &error_code, sizeof(error_code), 0);
     std::cout << "Send client response\n";
 
