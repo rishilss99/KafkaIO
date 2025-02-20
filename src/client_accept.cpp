@@ -1,7 +1,7 @@
 #include "client_accept.h"
 
 std::unordered_set<int16_t> supported_api_versions{0, 1, 2, 3, 4};
-std::unordered_map<int16_t, std::pair<int16_t, int16_t>> api_key_version_map;
+std::unordered_map<int16_t, std::pair<int16_t, int16_t>> api_key_version_map{{18, {0, 4}}};
 
 void handleClient(int client_fd)
 {
