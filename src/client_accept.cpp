@@ -12,7 +12,7 @@ void handleClient(int client_fd)
     recv(client_fd, &request_api_ver, sizeof(request_api_ver), 0);
     recv(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
 
-    int32_t response_msg_size = sizeof(int32_t) + sizeof(int32_t) + sizeof(int16_t) + sizeof(int16_t) * 3;
+    int32_t response_msg_size = sizeof(int32_t) + sizeof(int16_t) + sizeof(int16_t) * 3;
     int16_t error_code;
     response_msg_size = htobe32(response_msg_size);
     send(client_fd, &response_msg_size, sizeof(response_msg_size), 0);
