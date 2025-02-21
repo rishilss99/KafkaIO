@@ -12,8 +12,10 @@ void handleClient(int client_fd)
     recv(client_fd, &request_api_ver, sizeof(request_api_ver), 0);
     recv(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
 
-    int32_t response_msg_size = sizeof(int32_t) + sizeof(int16_t) + sizeof(int16_t) * 3;
+    int32_t response_msg_size, throttle_time;
     int16_t error_code;
+    int8_t array_len, tag_buffer;
+    response_msg_size = sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int16_t) * 3 + sizeof(int32_t) + sizeof(int8_t);
     response_msg_size = htobe32(response_msg_size);
     send(client_fd, &response_msg_size, sizeof(response_msg_size), 0);
     send(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
@@ -28,6 +30,8 @@ void handleClient(int client_fd)
     }
     error_code = htobe16(error_code);
     send(client_fd, &error_code, sizeof(error_code), 0);
+    // Array Length
+    array_len = 2;
     for (auto &api_key_version : api_key_version_map)
     {
         int16_t api_key = htobe16(api_key_version.first);
@@ -37,6 +41,12 @@ void handleClient(int client_fd)
         send(client_fd, &min_ver, sizeof(min_ver), 0);
         send(client_fd, &max_ver, sizeof(max_ver), 0);
     }
+    // Throttle time
+    throttle_time = htobe32(0);
+    send(client_fd, &throttle_time, sizeof(throttle_time), 0);
+    // TagBuffer
+    tag_buffer = htobe32(0);
+    send(client_fd, &tag_buffer, sizeof(tag_buffer), 0);
     std::cout << "Send client response\n";
 
     while (true)
