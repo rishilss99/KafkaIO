@@ -60,11 +60,12 @@ void Client::recvRequest(int32_t &request_corr_id, int16_t &request_api_ver)
     recv(client_fd, &request_api_key, sizeof(request_api_key), 0);
     recv(client_fd, &request_api_ver, sizeof(request_api_ver), 0);
     recv(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
-    std::cout << request_corr_id << "\n";
+    
     std::cout << "Received client request\n";
 
     convertBE16toH(request_api_key, request_api_ver);
     convertBE32toH(request_msg_size, request_corr_id);
+    std::cout << request_corr_id << "\n";
 }
 
 void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
@@ -109,10 +110,10 @@ void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
             convertH16toBE(val);
         }
     }
+    std::cout << request_corr_id << "\n";
     convertH32toBE(response_msg_size, request_corr_id, throttle_time);
 
     send(client_fd, &response_msg_size, sizeof(response_msg_size), 0);
-    std::cout << request_corr_id << "\n";
     send(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
     send(client_fd, &error_code, sizeof(error_code), 0);
     send(client_fd, &array_len, sizeof(array_len), 0);
