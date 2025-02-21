@@ -1,25 +1,87 @@
 #include "client_accept.h"
 
-std::unordered_set<int16_t> supported_api_versions{0, 1, 2, 3, 4};
-std::unordered_map<int16_t, std::pair<int16_t, int16_t>> api_key_version_map{{18, {0, 4}}};
-
-void handleClient(int client_fd)
+void convertBE16toH(int16_t &first)
 {
-    int32_t request_msg_size, request_corr_id;
-    int16_t request_api_key, request_api_ver;
+    first = be16toh(first);
+}
+
+void convertBE16toH(int16_t& first, auto&... rest)
+{
+    first = be16toh(first);
+    convertBE16toH(rest...);
+}
+
+void convertBE32toH(int32_t &first)
+{
+    first = be32toh(first);
+}
+
+void convertBE32toH(int32_t& first, auto&... rest)
+{
+    first = be32toh(first);
+    convertBE32toH(rest...);
+}
+
+void convertH16toBE(int16_t &first)
+{
+    first = htobe16(first);
+}
+
+void convertH16toBE(int16_t& first, auto&... rest)
+{
+    first = htobe16(first);
+    convertH16toBE(rest...);
+}
+
+void convertH32toBE(int32_t &first)
+{
+    first = htobe32(first);
+}
+
+void convertH32toBE(int32_t& first, auto&... rest)
+{
+    first = htobe32(first);
+    convertH32toBE(rest...);
+}
+
+Client::Client(int client_fd_) : client_fd(client_fd_)
+{
+    supported_api_versions.insert({0, 1, 2, 3, 4});
+    api_key_version_map.insert({18, {0, 4}});
+    handleClient();
+}
+
+void Client::recvRequest(int32_t &request_corr_id, int16_t &request_api_ver)
+{
+    int16_t request_api_key;
+    int32_t request_msg_size;
+
     recv(client_fd, &request_msg_size, sizeof(request_msg_size), 0);
     recv(client_fd, &request_api_key, sizeof(request_api_key), 0);
     recv(client_fd, &request_api_ver, sizeof(request_api_ver), 0);
     recv(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
 
-    int32_t response_msg_size, throttle_time;
-    int16_t error_code;
+    std::cout << "Received client request\n";
+
+    convertBE16toH(request_api_key, request_api_ver);
+    convertBE32toH(request_msg_size, request_corr_id);
+}
+
+void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
+{
     int8_t array_len, tag_buffer;
-    response_msg_size = sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int16_t) * 3 + sizeof(int8_t) + sizeof(int32_t) + sizeof(int8_t);
-    response_msg_size = htobe32(response_msg_size);
-    send(client_fd, &response_msg_size, sizeof(response_msg_size), 0);
-    send(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
-    request_api_ver = be16toh(request_api_ver);
+    int16_t error_code;
+    int32_t response_msg_size, throttle_time;
+    std::vector<std::array<int16_t, API_VERSIONS_SIZE>> api_versions_vec;
+
+    response_msg_size = sizeof(int32_t) +                     // correlation id
+                        sizeof(int16_t) +                     // error code
+                        sizeof(int8_t) +                      // array length
+                        sizeof(int16_t) * API_VERSIONS_SIZE + // api_key, min_ver, max_ver
+                        sizeof(int8_t) +                      // tag buffer
+                        sizeof(int32_t) +                     // throttle time
+                        sizeof(int8_t);                       // tag buffer
+
     if (supported_api_versions.find(request_api_ver) != supported_api_versions.end())
     {
         error_code = 0;
@@ -28,30 +90,50 @@ void handleClient(int client_fd)
     {
         error_code = 35;
     }
-    error_code = htobe16(error_code);
-    send(client_fd, &error_code, sizeof(error_code), 0);
-    // Array Length
-    array_len = 2;
-    send(client_fd, &array_len, sizeof(array_len), 0);
+
+    array_len = api_key_version_map.size() + 1;
+
     for (auto &api_key_version : api_key_version_map)
     {
-        int16_t api_key = htobe16(api_key_version.first);
-        int16_t min_ver = htobe16(api_key_version.second.first);
-        int16_t max_ver = htobe16(api_key_version.second.second);
-        send(client_fd, &api_key, sizeof(api_key), 0);
-        send(client_fd, &min_ver, sizeof(min_ver), 0);
-        send(client_fd, &max_ver, sizeof(max_ver), 0);
-        // TagBuffer
-        tag_buffer = 0;
+        api_versions_vec.push_back({api_key_version.first, api_key_version.second.first, api_key_version.second.second});
+    }
+
+    throttle_time = 0;
+    tag_buffer = 0;
+
+    convertH16toBE(request_api_ver, error_code);
+    for (auto &api_versions_elem : api_versions_vec)
+    {
+        for (auto &val : api_versions_elem)
+        {
+            convertH16toBE(val);
+        }
+    }
+    convertH32toBE(response_msg_size, request_corr_id, throttle_time);
+
+    send(client_fd, &response_msg_size, sizeof(response_msg_size), 0);
+    send(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
+    send(client_fd, &error_code, sizeof(error_code), 0);
+    send(client_fd, &array_len, sizeof(array_len), 0);
+    for (auto &api_versions_elem : api_versions_vec)
+    {
+        for (auto &val : api_versions_elem)
+        {
+            send(client_fd, &val, sizeof(val), 0);
+        }
         send(client_fd, &tag_buffer, sizeof(tag_buffer), 0);
     }
-    // Throttle time
-    throttle_time = htobe32(0);
     send(client_fd, &throttle_time, sizeof(throttle_time), 0);
-    // TagBuffer
-    tag_buffer = 0;
     send(client_fd, &tag_buffer, sizeof(tag_buffer), 0);
-    std::cout << "Send client response\n";
+    std::cout << "Sent client response\n";
+}
+
+void Client::handleClient()
+{
+    int32_t request_corr_id;
+    int16_t request_api_ver;
+    recvRequest(request_corr_id, request_api_ver);
+    sendResponse(request_corr_id, request_api_ver);
 
     while (true)
     {
