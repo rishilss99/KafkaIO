@@ -32,6 +32,7 @@ void handleClient(int client_fd)
     send(client_fd, &error_code, sizeof(error_code), 0);
     // Array Length
     array_len = 2;
+    send(client_fd, &array_len, sizeof(array_len), 0);
     for (auto &api_key_version : api_key_version_map)
     {
         int16_t api_key = htobe16(api_key_version.first);
@@ -45,7 +46,7 @@ void handleClient(int client_fd)
     throttle_time = htobe32(0);
     send(client_fd, &throttle_time, sizeof(throttle_time), 0);
     // TagBuffer
-    tag_buffer = htobe32(0);
+    tag_buffer = 0;
     send(client_fd, &tag_buffer, sizeof(tag_buffer), 0);
     std::cout << "Send client response\n";
 
