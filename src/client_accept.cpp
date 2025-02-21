@@ -112,6 +112,7 @@ void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
     convertH32toBE(response_msg_size, request_corr_id, throttle_time);
 
     send(client_fd, &response_msg_size, sizeof(response_msg_size), 0);
+    std::cout << request_corr_id << "\n";
     send(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
     send(client_fd, &error_code, sizeof(error_code), 0);
     send(client_fd, &array_len, sizeof(array_len), 0);
