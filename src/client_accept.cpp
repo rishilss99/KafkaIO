@@ -5,7 +5,7 @@ void convertBE16toH(int16_t &first)
     first = be16toh(first);
 }
 
-void convertBE16toH(int16_t& first, auto&... rest)
+void convertBE16toH(int16_t &first, auto &...rest)
 {
     first = be16toh(first);
     convertBE16toH(rest...);
@@ -16,7 +16,7 @@ void convertBE32toH(int32_t &first)
     first = be32toh(first);
 }
 
-void convertBE32toH(int32_t& first, auto&... rest)
+void convertBE32toH(int32_t &first, auto &...rest)
 {
     first = be32toh(first);
     convertBE32toH(rest...);
@@ -27,7 +27,7 @@ void convertH16toBE(int16_t &first)
     first = htobe16(first);
 }
 
-void convertH16toBE(int16_t& first, auto&... rest)
+void convertH16toBE(int16_t &first, auto &...rest)
 {
     first = htobe16(first);
     convertH16toBE(rest...);
@@ -38,7 +38,7 @@ void convertH32toBE(int32_t &first)
     first = htobe32(first);
 }
 
-void convertH32toBE(int32_t& first, auto&... rest)
+void convertH32toBE(int32_t &first, auto &...rest)
 {
     first = htobe32(first);
     convertH32toBE(rest...);
@@ -132,11 +132,11 @@ void Client::handleClient()
 {
     int32_t request_corr_id;
     int16_t request_api_ver;
-    recvRequest(request_corr_id, request_api_ver);
-    sendResponse(request_corr_id, request_api_ver);
 
     while (true)
     {
+        recvRequest(request_corr_id, request_api_ver);
+        sendResponse(request_corr_id, request_api_ver);
     }
 
     close(client_fd);
