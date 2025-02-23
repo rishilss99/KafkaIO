@@ -1,49 +1,5 @@
 #include "client_accept.h"
 
-void convertBE16toH(int16_t &first)
-{
-    first = be16toh(first);
-}
-
-void convertBE16toH(int16_t &first, auto &...rest)
-{
-    first = be16toh(first);
-    convertBE16toH(rest...);
-}
-
-void convertBE32toH(int32_t &first)
-{
-    first = be32toh(first);
-}
-
-void convertBE32toH(int32_t &first, auto &...rest)
-{
-    first = be32toh(first);
-    convertBE32toH(rest...);
-}
-
-void convertH16toBE(int16_t &first)
-{
-    first = htobe16(first);
-}
-
-void convertH16toBE(int16_t &first, auto &...rest)
-{
-    first = htobe16(first);
-    convertH16toBE(rest...);
-}
-
-void convertH32toBE(int32_t &first)
-{
-    first = htobe32(first);
-}
-
-void convertH32toBE(int32_t &first, auto &...rest)
-{
-    first = htobe32(first);
-    convertH32toBE(rest...);
-}
-
 Client::Client(int client_fd_) : client_fd(client_fd_)
 {
     supported_api_versions.insert({0, 1, 2, 3, 4});
@@ -73,11 +29,7 @@ void Client::recvRequest(int32_t &request_corr_id, int16_t &request_api_ver)
 
     std::vector<char> request_left_msg(request_left_size);
 
-    std::cout << request_left_size << "\n";
-
     recv(client_fd, request_left_msg.data(), request_left_msg.size(), 0);
-
-    std::cout << "Received client request\n";
 }
 
 void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
@@ -122,7 +74,6 @@ void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
             convertH16toBE(val);
         }
     }
-    std::cout << request_corr_id << "\n";
     convertH32toBE(response_msg_size, request_corr_id, throttle_time);
 
     send(client_fd, &response_msg_size, sizeof(response_msg_size), 0);
