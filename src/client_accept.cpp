@@ -3,7 +3,8 @@
 Client::Client(int client_fd_) : client_fd(client_fd_)
 {
     supported_api_versions.insert({0, 1, 2, 3, 4});
-    api_key_version_map.insert({18, {0, 4}});
+    api_key_version_map.insert({18, {0, 4}});   // APIVersions
+    api_key_version_map.insert({75, {0, 4}});   // DescribeTopicPartitions
     handleClient();
 }
 
