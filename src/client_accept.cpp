@@ -20,16 +20,15 @@ void Client::recvRequest(int32_t &request_corr_id, int16_t &request_api_ver)
     convertBE16toH(request_api_key, request_api_ver);
     convertBE32toH(request_msg_size, request_corr_id);
 
-    std::cout << request_corr_id << "\n";
-    
-    size_t request_left_size = request_msg_size 
-                               - sizeof(int16_t)    // api_key
-                               - sizeof(int16_t)    // api_ver
-                               - sizeof(int32_t);   // correlation id
+    size_t request_left_size = request_msg_size - sizeof(int16_t) // api_key
+                               - sizeof(int16_t)                  // api_ver
+                               - sizeof(int32_t);                 // correlation id
 
-    std::vector<char> request_left_msg(request_left_size);
-
-    recv(client_fd, request_left_msg.data(), request_left_msg.size(), 0);
+    if (request_left_size)
+    {
+        std::vector<char> request_left_msg(request_left_size);
+        recv(client_fd, request_left_msg.data(), request_left_msg.size(), 0);
+    }
 }
 
 void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
@@ -98,7 +97,7 @@ void Client::handleClient()
     int32_t request_corr_id;
     int16_t request_api_ver;
 
-    while (true)
+    while (server_running.load())
     {
         recvRequest(request_corr_id, request_api_ver);
         sendResponse(request_corr_id, request_api_ver);

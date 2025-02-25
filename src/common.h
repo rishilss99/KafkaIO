@@ -15,6 +15,9 @@
 #include <unordered_map>
 #include <type_traits>
 #include <array>
+#include <csignal>
+#include <thread>
+#include <atomic>
 
 inline void convertBE16toH(int16_t &first)
 {
@@ -59,3 +62,5 @@ inline void convertH32toBE(int32_t &first, auto &...rest)
     first = htobe32(first);
     convertH32toBE(rest...);
 }
+
+extern std::atomic_bool server_running;
