@@ -43,7 +43,7 @@ void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
                         sizeof(int16_t) +                     // error code
                         sizeof(int8_t) +                      // array length
                         sizeof(int16_t) * API_VERSIONS_SIZE + // api_key, min_ver, max_ver
-                        sizeof(int8_t) +                      // tag buffer
+                        sizeof(int8_t)  * API_VERSIONS_SIZE + // tag buffer
                         sizeof(int32_t) +                     // throttle time
                         sizeof(int8_t);                       // tag buffer
 
