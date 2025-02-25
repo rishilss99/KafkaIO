@@ -39,13 +39,12 @@ void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
     int32_t response_msg_size, throttle_time;
     std::vector<std::array<int16_t, API_VERSIONS_SIZE>> api_versions_vec;
 
-    response_msg_size = sizeof(int32_t) +                     // correlation id
-                        sizeof(int16_t) +                     // error code
-                        sizeof(int8_t) +                      // array length
-                        sizeof(int16_t) * API_VERSIONS_SIZE + // api_key, min_ver, max_ver
-                        sizeof(int8_t)  * API_VERSIONS_SIZE + // tag buffer
-                        sizeof(int32_t) +                     // throttle time
-                        sizeof(int8_t);                       // tag buffer
+    response_msg_size = sizeof(int32_t) +                                                                     // correlation id
+                        sizeof(int16_t) +                                                                     // error code
+                        sizeof(int8_t) +                                                                      // array length
+                        (sizeof(int16_t) * API_VERSIONS_SIZE + sizeof(int8_t)) * api_key_version_map.size() + // api_key, min_ver, max_ver, tag_buffer                    
+                        sizeof(int32_t) +                                                                     // throttle time
+                        sizeof(int8_t);                                                                       // tag buffer
 
     if (supported_api_versions.find(request_api_ver) != supported_api_versions.end())
     {
