@@ -224,10 +224,10 @@ private:
         int8_t topic_name_len;
         std::vector<char> topic_name; // Kafka Compact string (N+1)
         UUID topic_id;
+        int8_t is_internal;
         int8_t partitions_array_len;
         std::vector<Partition> paritions_array; // Kafka Compact arry (N+1)
-        int8_t is_internal;
-        int16_t topic_authorized_ops;
+        int32_t topic_authorized_ops;
         int8_t tag_buffer;
 
         size_t size() { return sizeof(error_code) + sizeof(topic_name_len) + topic_name.size() + sizeof(topic_id) + sizeof(partitions_array_len) +

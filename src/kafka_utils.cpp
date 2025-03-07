@@ -227,7 +227,8 @@ void DescribeTopicPartitionsResponseBodyV0::convertHToBE()
 
     for (auto &topics_elem : topics_array)
     {
-        convertH16toBE(topics_elem.error_code, topics_elem.topic_authorized_ops);
+        convertH16toBE(topics_elem.error_code);
+        convertH32toBE(topics_elem.topic_authorized_ops);
 
         for (auto &partitions_elem : topics_elem.paritions_array)
         {
@@ -276,7 +277,7 @@ ResponseMessage processAPIVersions(const RequestHeaderV2 &request_header, const 
     auto response_header = std::make_unique<ResponseHeaderV0>();
     auto response_body = std::make_unique<APIVersionsResponseBodyV4>();
 
-    int16_t response_size = 0;
+    int32_t response_size = 0;
 
     // Process bottom-up - Response Body -> Response Header
 
@@ -332,7 +333,7 @@ ResponseMessage processDescribeTopicPartitions(const RequestHeaderV2 &request_he
     auto response_header = std::make_unique<ResponseHeaderV1>();
     auto response_body = std::make_unique<DescribeTopicPartitionsResponseBodyV0>();
 
-    int16_t response_size = 0;
+    int32_t response_size = 0;
 
     // Process bottom-up - Response Body -> Response Header
 
@@ -352,8 +353,8 @@ ResponseMessage processDescribeTopicPartitions(const RequestHeaderV2 &request_he
                                                               .topic_name_len = topics_elem.topic_name_len,
                                                               .topic_name = topics_elem.topic_name,
                                                               .topic_id = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                              .partitions_array_len = 1,
                                                               .is_internal = 0,
+                                                              .partitions_array_len = 1,
                                                               .topic_authorized_ops = 0,
                                                               .tag_buffer = 0};
 
