@@ -28,7 +28,7 @@ void setToHandleSignal()
     sa.sa_handler = signalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
-    
+
     if (sigaction(SIGINT, &sa, nullptr) == -1)
     {
         std::perror("Error occured");
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     setToHandleSignal();
 
     int server_fd = serverSetup();
-    if(server_fd == 1)
+    if (server_fd == 1)
     {
         std::cerr << "Couldn't setup server socket" << std::endl;
         exit(EXIT_FAILURE);
@@ -75,7 +75,8 @@ int main(int argc, char *argv[])
             }
         }
         std::thread t([client_fd]()
-                      { Client client(client_fd); });
+                      { setToBlockSignal();
+                        Client client(client_fd); });
         t.detach();
         std::cout << "Client connected\n";
     }

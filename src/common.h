@@ -18,6 +18,11 @@
 #include <csignal>
 #include <thread>
 #include <atomic>
+#include <tuple>
+#include <cassert>
+#include <utility>
+#include <memory>
+#include <algorithm>
 
 inline void convertBE16toH(int16_t &first)
 {

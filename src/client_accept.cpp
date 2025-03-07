@@ -2,94 +2,69 @@
 
 Client::Client(int client_fd_) : client_fd(client_fd_)
 {
-    supported_api_versions.insert({0, 1, 2, 3, 4});
-    api_key_version_map.insert({18, {0, 4}});   // APIVersions
-    api_key_version_map.insert({75, {0, 4}});   // DescribeTopicPartitions
     handleClient();
 }
 
-void Client::recvRequest(int32_t &request_corr_id, int16_t &request_api_ver)
+std::unique_ptr<RequestHeader> Client::recvRequestHeader()
 {
-    int16_t request_api_key;
-    int32_t request_msg_size;
-
-    recv(client_fd, &request_msg_size, sizeof(request_msg_size), 0);
-    recv(client_fd, &request_api_key, sizeof(request_api_key), 0);
-    recv(client_fd, &request_api_ver, sizeof(request_api_ver), 0);
-    recv(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
-
-    convertBE16toH(request_api_key, request_api_ver);
-    convertBE32toH(request_msg_size, request_corr_id);
-
-    size_t request_left_size = request_msg_size - sizeof(int16_t) // api_key
-                               - sizeof(int16_t)                  // api_ver
-                               - sizeof(int32_t);                 // correlation id
-
-    if (request_left_size)
-    {
-        std::vector<char> request_left_msg(request_left_size);
-        recv(client_fd, request_left_msg.data(), request_left_msg.size(), 0);
-    }
+    std::unique_ptr<RequestHeader> request_header = std::make_unique<RequestHeaderV2>();
+    request_header->receive(client_fd);
+    return request_header;
 }
 
-void Client::sendResponse(int32_t &request_corr_id, int16_t &request_api_ver)
+std::unique_ptr<RequestBody> Client::recvRequestBody(int16_t api_key)
 {
-    int8_t array_len, tag_buffer;
-    int16_t error_code;
-    int32_t response_msg_size, throttle_time;
-    std::vector<std::array<int16_t, API_VERSIONS_SIZE>> api_versions_vec;
+    std::unique_ptr<RequestBody> request_body = nullptr;
 
-    response_msg_size = sizeof(int32_t) +                                                                     // correlation id
-                        sizeof(int16_t) +                                                                     // error code
-                        sizeof(int8_t) +                                                                      // array length
-                        (sizeof(int16_t) * API_VERSIONS_SIZE + sizeof(int8_t)) * api_key_version_map.size() + // api_key, min_ver, max_ver, tag_buffer                    
-                        sizeof(int32_t) +                                                                     // throttle time
-                        sizeof(int8_t);                                                                       // tag buffer
-
-    if (supported_api_versions.find(request_api_ver) != supported_api_versions.end())
+    switch (api_key)
     {
-        error_code = 0;
+    case 18: // APIVersions
+        request_body = std::make_unique<APIVersionsRequestBodyV4>();
+        break;
+
+    case 75: // DescribeTopicPartitions
+        request_body = std::make_unique<DescribeTopicPartitionsRequestBodyV0>();
+        break;
+
+    default:
+        assert(true); // No handling of unknown API keys
+        break;
     }
-    else
+    request_body->receive(client_fd);
+    return request_body;
+}
+
+ResponseMessage Client::processMessage(RequestMessage request_message)
+{
+    auto [request_header, request_body] = std::move(request_message);
+    ResponseMessage response_message = {nullptr, nullptr};
+
+    switch (request_header->getAPIKey())
     {
-        error_code = 35;
+    case 18: // APIVersions
+        response_message = processAPIVersions(dynamic_cast<const RequestHeaderV2 &>(*request_header), dynamic_cast<const APIVersionsRequestBodyV4 &>(*request_body));
+        break;
+
+    case 75: // DescribeTopicPartitions
+        response_message = processDescribeTopicPartitions(dynamic_cast<const RequestHeaderV2 &>(*request_header), dynamic_cast<const DescribeTopicPartitionsRequestBodyV0 &>(*request_body));
+        break;
+
+    default:
+        assert(true); // No handling of unknown API keys
+        break;
     }
 
-    array_len = api_key_version_map.size() + 1;
+    return response_message;
+}
 
-    for (auto &api_key_version : api_key_version_map)
-    {
-        api_versions_vec.push_back({api_key_version.first, api_key_version.second.first, api_key_version.second.second});
-    }
+void Client::sendResponseHeader(std::unique_ptr<ResponseHeader> response_header)
+{
+    response_header->respond(client_fd);
+}
 
-    throttle_time = 0;
-    tag_buffer = 0;
-
-    convertH16toBE(request_api_ver, error_code);
-    for (auto &api_versions_elem : api_versions_vec)
-    {
-        for (auto &val : api_versions_elem)
-        {
-            convertH16toBE(val);
-        }
-    }
-    convertH32toBE(response_msg_size, request_corr_id, throttle_time);
-
-    send(client_fd, &response_msg_size, sizeof(response_msg_size), 0);
-    send(client_fd, &request_corr_id, sizeof(request_corr_id), 0);
-    send(client_fd, &error_code, sizeof(error_code), 0);
-    send(client_fd, &array_len, sizeof(array_len), 0);
-    for (auto &api_versions_elem : api_versions_vec)
-    {
-        for (auto &val : api_versions_elem)
-        {
-            send(client_fd, &val, sizeof(val), 0);
-        }
-        send(client_fd, &tag_buffer, sizeof(tag_buffer), 0);
-    }
-    send(client_fd, &throttle_time, sizeof(throttle_time), 0);
-    send(client_fd, &tag_buffer, sizeof(tag_buffer), 0);
-    std::cout << "Sent client response\n";
+void Client::sendResponseBody(std::unique_ptr<ResponseBody> response_body)
+{
+    response_body->respond(client_fd);
 }
 
 void Client::handleClient()
@@ -99,8 +74,11 @@ void Client::handleClient()
 
     while (server_running.load())
     {
-        recvRequest(request_corr_id, request_api_ver);
-        sendResponse(request_corr_id, request_api_ver);
+        auto request_header = recvRequestHeader();
+        auto request_body = recvRequestBody(request_header->getAPIKey());
+        auto [response_header, response_body] = processMessage({std::move(request_header), std::move(request_body)});
+        sendResponseHeader(std::move(response_header));
+        sendResponseBody(std::move(response_body));
     }
 
     close(client_fd);

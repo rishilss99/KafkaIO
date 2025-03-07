@@ -1,17 +1,20 @@
 #pragma once
 
 #include "common.h"
+#include "kafka_utils.h"
 
 class Client
 {
 public:
     Client(int client_fd_);
     void handleClient();
-    void recvRequest(int32_t &request_corr_id, int16_t &request_api_ver);
-    void sendResponse(int32_t &request_corr_id, int16_t &request_api_ver);
+
+    std::unique_ptr<RequestHeader> recvRequestHeader();
+    std::unique_ptr<RequestBody> recvRequestBody(int16_t api_key);
+    ResponseMessage processMessage(RequestMessage request_message);
+    void sendResponseHeader(std::unique_ptr<ResponseHeader> response_header);
+    void sendResponseBody(std::unique_ptr<ResponseBody> response_body);
+
 private:
     int client_fd;
-    std::unordered_set<int16_t> supported_api_versions;
-    std::unordered_map<int16_t, std::pair<int16_t, int16_t>> api_key_version_map;
-    static constexpr size_t API_VERSIONS_SIZE = 3;
 };
