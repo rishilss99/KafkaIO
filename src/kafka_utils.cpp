@@ -1,4 +1,5 @@
 #include "kafka_utils.h"
+#include "log_parsing.h"
 
 static void recvNullableString(int client_fd, int8_t &len, std::vector<char> &str)
 {
@@ -180,7 +181,7 @@ void DescribeTopicPartitionsResponseBodyV0::respond(int client_fd)
         sendCompactString(client_fd, topics_elem.topic_name_len, topics_elem.topic_name);
         send(client_fd, topics_elem.topic_id.data(), topics_elem.topic_id.size(), 0);
         send(client_fd, &topics_elem.partitions_array_len, sizeof(topics_elem.partitions_array_len), 0);
-        for (auto &partitions_elem : topics_elem.paritions_array)
+        for (auto &partitions_elem : topics_elem.partitions_array)
         {
             send(client_fd, &partitions_elem.error_code, sizeof(partitions_elem.error_code), 0);
             send(client_fd, &partitions_elem.partition_index, sizeof(partitions_elem.partition_index), 0);
@@ -230,7 +231,7 @@ void DescribeTopicPartitionsResponseBodyV0::convertHToBE()
         convertH16toBE(topics_elem.error_code);
         convertH32toBE(topics_elem.topic_authorized_ops);
 
-        for (auto &partitions_elem : topics_elem.paritions_array)
+        for (auto &partitions_elem : topics_elem.partitions_array)
         {
             convertH16toBE(partitions_elem.error_code);
             convertH32toBE(partitions_elem.partition_index, partitions_elem.leader_id, partitions_elem.leader_epoch);
@@ -347,16 +348,15 @@ ResponseMessage processDescribeTopicPartitions(const RequestHeaderV2 &request_he
     response_body->topics_array_len = request_body.topics_array_len;
     response_size += sizeof(response_body->topics_array_len);
 
+    // This is where we use the LogParser for checking log files for the topics
+
+    LogParser log_parser("/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log"); // Hard-coded filename is not good
+
+    // KISS
+
     for (auto &topics_elem : request_body.topics_array)
     {
-        DescribeTopicPartitionsResponseBodyV0::Topic topic = {.error_code = 3, // Introduce macros for error codes
-                                                              .topic_name_len = topics_elem.topic_name_len,
-                                                              .topic_name = topics_elem.topic_name,
-                                                              .topic_id = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                              .is_internal = 0,
-                                                              .partitions_array_len = 1,
-                                                              .topic_authorized_ops = 0,
-                                                              .tag_buffer = 0};
+        auto topic = log_parser.extractTopicPartitionRecords(topics_elem.topic_name_len, topics_elem.topic_name);
 
         response_body->topics_array.push_back(topic);
         response_size += topic.size();

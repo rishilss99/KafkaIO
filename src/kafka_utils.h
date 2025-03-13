@@ -91,7 +91,7 @@ public:
     DescribeTopicPartitionsRequestBodyV0() = default;
     void receive(int client_fd) override;
 
-private:
+public:
     struct Topic
     {
         int8_t topic_name_len;
@@ -168,7 +168,7 @@ public:
     APIVersionsResponseBodyV4() = default;
     void respond(int client_fd) override;
 
-private:
+public:
     struct APIVersion
     {
         int16_t api_key;
@@ -197,8 +197,7 @@ public:
     DescribeTopicPartitionsResponseBodyV0() = default;
     void respond(int client_fd) override;
 
-private:
-    using UUID = std::array<uint8_t, 16>;
+public:
     struct Topic
     {
         struct Partition
@@ -218,6 +217,14 @@ private:
             int8_t offline_replica_nodes_array_len;
             std::vector<int32_t> offline_replica_nodes_array; // Kafka Compact arry (N+1)
             int8_t tag_buffer;
+
+            size_t size() const { return sizeof(error_code) + sizeof(partition_index) + sizeof(leader_id) + sizeof(leader_epoch) +
+                                         sizeof(replica_nodes_array_len) + replica_nodes_array.size() * sizeof(int32_t) +
+                                         sizeof(isr_nodes_array_len) + isr_nodes_array.size() * sizeof(int32_t) +
+                                         sizeof(elr_nodes_array_len) + elr_nodes_array.size() * sizeof(int32_t) +
+                                         sizeof(last_known_elr_nodes_array_len) + last_known_elr_nodes_array.size() * sizeof(int32_t) +
+                                         sizeof(offline_replica_nodes_array_len) + offline_replica_nodes_array.size() * sizeof(int32_t) +
+                                         sizeof(tag_buffer); }
         };
 
         int16_t error_code;
@@ -226,12 +233,17 @@ private:
         UUID topic_id;
         int8_t is_internal;
         int8_t partitions_array_len;
-        std::vector<Partition> paritions_array; // Kafka Compact arry (N+1)
+        std::vector<Partition> partitions_array; // Kafka Compact arry (N+1)
         int32_t topic_authorized_ops;
         int8_t tag_buffer;
 
-        size_t size() { return sizeof(error_code) + sizeof(topic_name_len) + topic_name.size() + sizeof(topic_id) + sizeof(partitions_array_len) +
-                               sizeof(is_internal) + sizeof(topic_authorized_ops) + sizeof(tag_buffer); }
+        size_t size() const
+        {
+            return sizeof(error_code) + sizeof(topic_name_len) + topic_name.size() + sizeof(topic_id) + sizeof(partitions_array_len) +
+                   std::accumulate(partitions_array.begin(), partitions_array.end(), 0, [](size_t sum, const Partition &p)
+                                   { return sum + p.size(); }) +
+                   sizeof(is_internal) + sizeof(topic_authorized_ops) + sizeof(tag_buffer);
+        }
     };
 
 private:

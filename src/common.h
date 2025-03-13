@@ -23,6 +23,8 @@
 #include <utility>
 #include <memory>
 #include <algorithm>
+#include <fstream>
+#include <numeric>
 
 inline void convertBE16toH(int16_t &first)
 {
@@ -46,6 +48,18 @@ inline void convertBE32toH(int32_t &first, auto &...rest)
     convertBE32toH(rest...);
 }
 
+inline void convertBE64toH(int64_t &first)
+{
+    first = be64toh(first);
+}
+
+inline void convertBE64toH(int64_t &first, auto &...rest)
+{
+    first = be64toh(first);
+    convertBE64toH(rest...);
+}
+
+
 inline void convertH16toBE(int16_t &first)
 {
     first = htobe16(first);
@@ -68,4 +82,18 @@ inline void convertH32toBE(int32_t &first, auto &...rest)
     convertH32toBE(rest...);
 }
 
+inline void convertH64toBE(int64_t &first)
+{
+    first = htobe64(first);
+}
+
+inline void convertH64toBE(int64_t &first, auto &...rest)
+{
+    first = htobe64(first);
+    convertH64toBE(rest...);
+}
+
+
 extern std::atomic_bool server_running;
+
+using UUID = std::array<uint8_t, 16>;
