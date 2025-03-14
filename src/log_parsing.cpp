@@ -38,7 +38,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
 
     file.read(reinterpret_cast<char *>(&replica_array_len), sizeof(replica_array_len));
     int32_t replica_id;
-    for (int i = 1; i < replica_array_len; i++)
+    for (int i = 0; i < replica_array_len - 1; i++)
     {
         file.read(reinterpret_cast<char *>(replica_id), sizeof(replica_id));
         convertBE32toH(replica_id);
@@ -47,7 +47,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
 
     file.read(reinterpret_cast<char *>(&isr_array_len), sizeof(isr_array_len));
     int32_t isr_id;
-    for (int i = 1; i < isr_array_len; i++)
+    for (int i = 0; i < isr_array_len - 1; i++)
     {
         file.read(reinterpret_cast<char *>(isr_id), sizeof(isr_id));
         convertBE32toH(isr_id);
@@ -65,7 +65,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
 
     file.read(reinterpret_cast<char *>(&ar_array_len), sizeof(ar_array_len));
     int32_t ar_id;
-    for (int i = 1; i < ar_array_len; i++)
+    for (int i = 0; i < ar_array_len - 1; i++)
     {
         file.read(reinterpret_cast<char *>(ar_id), sizeof(ar_id));
         convertBE32toH(ar_id);
@@ -78,7 +78,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
 
     file.read(reinterpret_cast<char *>(&directories_array_len), sizeof(directories_array_len));
     UUID directory_uuid;
-    for (int i = 1; i < ar_array_len; i++)
+    for (int i = 0; i < directories_array_len - 1; i++)
     {
         file.read(reinterpret_cast<char *>(directory_uuid.data()), directory_uuid.size());
         directories_array.push_back(directory_uuid);
@@ -114,7 +114,7 @@ std::unique_ptr<RecordValue> RecordValue::parseRecordValue(std::ifstream &file)
         break;
 
     default:
-        // assert(true); // No handling of unknown records
+        assert(true); // No handling of unknown records
         break;
     }
 
