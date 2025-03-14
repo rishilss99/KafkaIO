@@ -99,7 +99,7 @@ private:
     int8_t offset_delta;
     int8_t key_length;
     std::vector<int8_t> key;
-    int16_t value_length;
+    int8_t value_length;
     std::unique_ptr<RecordValue> value;
     int8_t headers_array_count;
 
