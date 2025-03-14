@@ -116,7 +116,7 @@ Record::Record(std::ifstream &file)
     file.read(reinterpret_cast<char *>(&offset_delta), sizeof(offset_delta));
     file.read(reinterpret_cast<char *>(&key_length), sizeof(key_length));
 
-    for (int i = 0; i < key_length; i++)
+    for (int i = 0; i < key_length - 1; i++)
     {
         key.push_back(file.get());
     }
