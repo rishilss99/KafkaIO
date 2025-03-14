@@ -146,11 +146,11 @@ Record::Record(std::ifstream &file)
         key.push_back(file.get());
     }
 
-    file.read(reinterpret_cast<char *>(&value_length), sizeof(value_length));
+    value_length.readValue(file);
 
-    if (value_length != 0)
+    if (value_length.getValue() != 0)
     {
-        assert(value_length >= 3); // Should atleast have the first 3 Bytes
+        assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes
 
         value = RecordValue::parseRecordValue(file);
     }

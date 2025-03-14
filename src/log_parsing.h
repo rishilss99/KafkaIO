@@ -110,13 +110,36 @@ public:
     Record(std::ifstream &file);
 
 private:
+    class Varint
+    {
+    public:
+        Varint() : varint_pair(0, 0) {}
+        void readValue(std::ifstream &file)
+        {
+            file.read(reinterpret_cast<char *>(&varint_pair.first), sizeof(varint_pair.first));
+            if (varint_pair.first >= 0) // For leading but 0 check
+            {
+                file.read(reinterpret_cast<char *>(&varint_pair.second), sizeof(varint_pair.second));
+            }
+        }
+        int16_t getValue()
+        {
+            int16_t value = (varint_pair.second << 8) + varint_pair.first;
+            return value;
+        }
+
+    private:
+        std::pair<int8_t, int8_t> varint_pair;
+    };
+
+private:
     int8_t length;
     int8_t attributes;
     int8_t timestamp_delta;
     int8_t offset_delta;
     int8_t key_length;
     std::vector<int8_t> key;
-    int8_t value_length;
+    Varint value_length;
     std::unique_ptr<RecordValue> value;
     int8_t headers_array_count;
 

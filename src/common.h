@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <fstream>
 #include <numeric>
+#include <variant>
 
 inline void convertBE16toH(int16_t &first)
 {
