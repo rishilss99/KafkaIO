@@ -93,7 +93,7 @@ public:
     Record(std::ifstream &file);
 
 private:
-    int16_t length;
+    int8_t length;
     int8_t attributes;
     int8_t timestamp_delta;
     int8_t offset_delta;
