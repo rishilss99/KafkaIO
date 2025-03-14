@@ -17,25 +17,31 @@ static void readCompactString(std::ifstream &file, int16_t &len, std::vector<cha
 
 FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
-    std::cout << "Read Feature Level Record" << std::endl;
+    std::cout << "Start reading Feature Level Record" << std::endl;
+
     readCompactString(file, name_length, name);
     file.read(reinterpret_cast<char *>(feature_level), sizeof(feature_level));
     file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
 
     convertBE16toH(feature_level);
+
+    std::cout << "Done reading Feature Level Record" << std::endl;
 }
 
 TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
-    std::cout << "Read Topic Record" << std::endl;
+    std::cout << "Start reading Topic Record" << std::endl;
     readCompactString(file, name_length, topic_name);
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
     file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
+
+    std::cout << "Done reading Topic Record" << std::endl;
 }
 
 PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
-    std::cout << "Read Partition Record" << std::endl;
+    std::cout << "Start reading Partition Record" << std::endl;
+
     file.read(reinterpret_cast<char *>(&partition_id), sizeof(partition_id));
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
 
@@ -90,6 +96,8 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
 
     convertBE32toH(partition_id, leader, leader_epoch, partition_epoch);
+
+    std::cout << "Done reading Partition Record" << std::endl;
 }
 
 std::unique_ptr<RecordValue> RecordValue::parseRecordValue(std::ifstream &file)
