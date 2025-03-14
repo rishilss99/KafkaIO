@@ -15,6 +15,15 @@ static void readCompactString(std::ifstream &file, int16_t &len, std::vector<cha
     file.read(str.data(), len - 1);
 }
 
+FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
+{
+    readCompactString(file, name_length, name);
+    file.read(reinterpret_cast<char *>(feature_level), sizeof(feature_level));
+    file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
+
+    convertBE16toH(feature_level);
+}
+
 TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
     readCompactString(file, name_length, topic_name);
@@ -92,6 +101,10 @@ std::unique_ptr<RecordValue> RecordValue::parseRecordValue(std::ifstream &file)
 
     switch (type_)
     {
+    case 1: // FeatureLevelRecord
+        record_value = std::make_unique<TopicRecord>(file, frame_version_, type_, version_);
+        break;
+
     case 2: // TopicRecord
         record_value = std::make_unique<TopicRecord>(file, frame_version_, type_, version_);
         break;
@@ -176,46 +189,38 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
 
         for (auto &record : temp_batch.records)
         {
-            // Need to check for nullptr since only
-            // considering Topic and Partition records
-            if (record != nullptr)
+
+            if (record->value->getRecordType() == RecordValue::RECORD_VALUE::TOPIC)
             {
-                if (record->value->getRecordType() == RecordValue::RECORD_VALUE::TOPIC)
-                {
-                    const TopicRecord &topic_record = dynamic_cast<const TopicRecord &>(*(record->value));
+                const TopicRecord &topic_record = dynamic_cast<const TopicRecord &>(*(record->value));
 
-                    if (topic_name == topic_record.topic_name)
-                    {
-                        response_topic.topic_id = topic_record.topic_id;
-                        topic_in_records = true;
-                    }
+                if (topic_name == topic_record.topic_name)
+                {
+                    response_topic.topic_id = topic_record.topic_id;
+                    topic_in_records = true;
                 }
-                else if (record->value->getRecordType() == RecordValue::RECORD_VALUE::PARTITION)
-                {
-                    const PartitionRecord &partition_record = dynamic_cast<const PartitionRecord &>(*(record->value));
+            }
+            else if (record->value->getRecordType() == RecordValue::RECORD_VALUE::PARTITION)
+            {
+                const PartitionRecord &partition_record = dynamic_cast<const PartitionRecord &>(*(record->value));
 
-                    if (topic_in_records && (partition_record.topic_id == response_topic.topic_id))
-                    {
-                        DescribeTopicPartitionsResponseBodyV0::Topic::Partition response_partition = {.error_code = 0, // Introduce macros for error codes
-                                                                                                      .partition_index = partition_record.partition_id,
-                                                                                                      .leader_id = partition_record.leader,
-                                                                                                      .leader_epoch = partition_record.leader_epoch,
-                                                                                                      .replica_nodes_array_len = partition_record.replica_array_len,
-                                                                                                      .replica_nodes_array = partition_record.replica_array,
-                                                                                                      .isr_nodes_array_len = partition_record.isr_array_len,
-                                                                                                      .isr_nodes_array = partition_record.isr_array,
-                                                                                                      .elr_nodes_array_len = 1,
-                                                                                                      .last_known_elr_nodes_array_len = 1,
-                                                                                                      .offline_replica_nodes_array_len = 1,
-                                                                                                      .tag_buffer = 0};
-
-                        response_topic.partitions_array_len += 1;
-                        response_topic.partitions_array.push_back(response_partition);
-                    }
-                }
-                else
+                if (topic_in_records && (partition_record.topic_id == response_topic.topic_id))
                 {
-                    assert(true); // No other case to handle
+                    DescribeTopicPartitionsResponseBodyV0::Topic::Partition response_partition = {.error_code = 0, // Introduce macros for error codes
+                                                                                                  .partition_index = partition_record.partition_id,
+                                                                                                  .leader_id = partition_record.leader,
+                                                                                                  .leader_epoch = partition_record.leader_epoch,
+                                                                                                  .replica_nodes_array_len = partition_record.replica_array_len,
+                                                                                                  .replica_nodes_array = partition_record.replica_array,
+                                                                                                  .isr_nodes_array_len = partition_record.isr_array_len,
+                                                                                                  .isr_nodes_array = partition_record.isr_array,
+                                                                                                  .elr_nodes_array_len = 1,
+                                                                                                  .last_known_elr_nodes_array_len = 1,
+                                                                                                  .offline_replica_nodes_array_len = 1,
+                                                                                                  .tag_buffer = 0};
+
+                    response_topic.partitions_array_len += 1;
+                    response_topic.partitions_array.push_back(response_partition);
                 }
             }
         }

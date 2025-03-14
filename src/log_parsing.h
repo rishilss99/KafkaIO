@@ -3,6 +3,7 @@
 #include "common.h"
 #include "kafka_utils.h"
 
+class FeatureLevelRecord;
 class TopicRecord;
 class PartitionRecord;
 
@@ -31,6 +32,7 @@ class RecordValue
 public:
     enum class RECORD_VALUE
     {
+        FEATURE_LEVEL,
         TOPIC,
         PARTITION
     };
@@ -43,6 +45,21 @@ protected:
     int8_t frame_version;
     int8_t type;
     int8_t version;
+};
+
+class FeatureLevelRecord : public RecordValue
+{
+public:
+    FeatureLevelRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_);
+    RECORD_VALUE getRecordType() override { return RECORD_VALUE::FEATURE_LEVEL; }
+
+private:
+    int8_t name_length;
+    std::vector<char> name;
+    int16_t feature_level;
+    int8_t tagged_fields_count;
+
+    friend DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRecords(int8_t topic_name_len, const std::vector<char> &topic_name);
 };
 
 class TopicRecord : public RecordValue
