@@ -20,7 +20,7 @@ FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version
     std::cout << "Start reading Feature Level Record" << std::endl;
 
     readCompactString(file, name_length, name);
-    file.read(reinterpret_cast<char *>(feature_level), sizeof(feature_level));
+    file.read(reinterpret_cast<char *>(&feature_level), sizeof(feature_level));
     file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
 
     convertBE16toH(feature_level);
@@ -31,6 +31,7 @@ FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version
 TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
     std::cout << "Start reading Topic Record" << std::endl;
+
     readCompactString(file, name_length, topic_name);
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
     file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
