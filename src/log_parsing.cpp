@@ -123,7 +123,7 @@ Record::Record(std::ifstream &file)
 
     file.read(reinterpret_cast<char *>(&value_length), sizeof(value_length));
 
-    assert(value_length < 3); // Should atleast have the first 3 Bytes
+    assert(value_length >= 3); // Should atleast have the first 3 Bytes
 
     value = RecordValue::parseRecordValue(file);
 
