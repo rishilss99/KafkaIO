@@ -50,7 +50,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     int32_t replica_id;
     for (int i = 0; i < replica_array_len - 1; i++)
     {
-        file.read(reinterpret_cast<char *>(replica_id), sizeof(replica_id));
+        file.read(reinterpret_cast<char *>(&replica_id), sizeof(replica_id));
         convertBE32toH(replica_id);
         replica_array.push_back(replica_id);
     }
@@ -59,7 +59,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     int32_t isr_id;
     for (int i = 0; i < isr_array_len - 1; i++)
     {
-        file.read(reinterpret_cast<char *>(isr_id), sizeof(isr_id));
+        file.read(reinterpret_cast<char *>(&isr_id), sizeof(isr_id));
         convertBE32toH(isr_id);
         isr_array.push_back(isr_id);
     }
@@ -68,7 +68,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     int32_t rr_id;
     for (int i = 1; i < rr_array_len; i++)
     {
-        file.read(reinterpret_cast<char *>(rr_id), sizeof(rr_id));
+        file.read(reinterpret_cast<char *>(&rr_id), sizeof(rr_id));
         convertBE32toH(rr_id);
         rr_array.push_back(rr_id);
     }
@@ -77,7 +77,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     int32_t ar_id;
     for (int i = 0; i < ar_array_len - 1; i++)
     {
-        file.read(reinterpret_cast<char *>(ar_id), sizeof(ar_id));
+        file.read(reinterpret_cast<char *>(&ar_id), sizeof(ar_id));
         convertBE32toH(ar_id);
         ar_array.push_back(ar_id);
     }
