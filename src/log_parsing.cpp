@@ -102,7 +102,7 @@ std::unique_ptr<RecordValue> RecordValue::parseRecordValue(std::ifstream &file)
     switch (type_)
     {
     case 1: // FeatureLevelRecord
-        record_value = std::make_unique<TopicRecord>(file, frame_version_, type_, version_);
+        record_value = std::make_unique<FeatureLevelRecord>(file, frame_version_, type_, version_);
         break;
 
     case 2: // TopicRecord
