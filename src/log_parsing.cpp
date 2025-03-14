@@ -148,9 +148,12 @@ Record::Record(std::ifstream &file)
 
     file.read(reinterpret_cast<char *>(&value_length), sizeof(value_length));
 
-    assert(value_length >= 3); // Should atleast have the first 3 Bytes
+    if (value_length != 0)
+    {
+        assert(value_length >= 3); // Should atleast have the first 3 Bytes
 
-    value = RecordValue::parseRecordValue(file);
+        value = RecordValue::parseRecordValue(file);
+    }
 
     file.read(reinterpret_cast<char *>(&headers_array_count), sizeof(headers_array_count));
 }
@@ -201,6 +204,8 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
 
         for (auto &record : temp_batch.records)
         {
+            if (record->value == nullptr)
+                continue;
 
             if (record->value->getRecordType() == RecordValue::RECORD_VALUE::TOPIC)
             {
