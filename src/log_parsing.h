@@ -124,7 +124,8 @@ private:
         }
         int16_t getValue()
         {
-            int16_t value = (varint_pair.second << 8) + varint_pair.first;
+            int16_t value = varint_pair.second;
+            value = (value << 8) + varint_pair.first;
             return value;
         }
 
