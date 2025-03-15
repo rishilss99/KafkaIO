@@ -124,9 +124,9 @@ private:
         }
         int16_t getValue()
         {
-            int16_t value = varint_pair.second;
-            value = (value << 8) | varint_pair.first;
-            std::cout << "Get Value: " << std::hex << varint_pair.first << varint_pair.second << std::endl;
+            int16_t value = varint_pair.first;
+            value = (value << 8) | varint_pair.second;
+            convertBE16toH(value);
             return value;
         }
 
