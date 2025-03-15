@@ -215,7 +215,6 @@ void DescribeTopicPartitionsResponseBodyV0::respond(int client_fd)
             }
             send(client_fd, &partitions_elem.tag_buffer, sizeof(partitions_elem.tag_buffer), 0);
         }
-        send(client_fd, &topics_elem.is_internal, sizeof(topics_elem.is_internal), 0);
         send(client_fd, &topics_elem.topic_authorized_ops, sizeof(topics_elem.topic_authorized_ops), 0);
         send(client_fd, &topics_elem.tag_buffer, sizeof(topics_elem.tag_buffer), 0);
     }

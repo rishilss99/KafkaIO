@@ -239,10 +239,11 @@ public:
 
         size_t size() const
         {
-            return sizeof(error_code) + sizeof(topic_name_len) + topic_name.size() + sizeof(topic_id) + sizeof(partitions_array_len) +
+            return sizeof(error_code) + sizeof(topic_name_len) + topic_name.size() +
+                   sizeof(topic_id) + sizeof(is_internal) + sizeof(partitions_array_len) +
                    std::accumulate(partitions_array.begin(), partitions_array.end(), 0, [](size_t sum, const Partition &p)
                                    { return sum + p.size(); }) +
-                   sizeof(is_internal) + sizeof(topic_authorized_ops) + sizeof(tag_buffer);
+                   sizeof(topic_authorized_ops) + sizeof(tag_buffer);
         }
     };
 
