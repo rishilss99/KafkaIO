@@ -180,7 +180,7 @@ void DescribeTopicPartitionsResponseBodyV0::respond(int client_fd)
         send(client_fd, &topics_elem.error_code, sizeof(topics_elem.error_code), 0);
         sendCompactString(client_fd, topics_elem.topic_name_len, topics_elem.topic_name);
         send(client_fd, topics_elem.topic_id.data(), topics_elem.topic_id.size(), 0);
-        send(client_fd, &topics_elem.is_internal, sizeof(topics_elem.is_internal), 0
+        send(client_fd, &topics_elem.is_internal, sizeof(topics_elem.is_internal), 0);
         send(client_fd, &topics_elem.partitions_array_len, sizeof(topics_elem.partitions_array_len), 0);
         for (auto &partitions_elem : topics_elem.partitions_array)
         {
