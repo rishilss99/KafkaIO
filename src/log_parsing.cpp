@@ -15,6 +15,15 @@ static void readCompactString(std::ifstream &file, int16_t &len, std::vector<cha
     file.read(str.data(), len - 1);
 }
 
+static void printUUID(UUID &id)
+{
+    for(auto elem: id)
+    {
+        std::cout << elem << " ";
+    }
+    std::cout << std::endl;
+}
+
 FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
     std::cout << "Start reading Feature Level Record" << std::endl;
@@ -37,6 +46,7 @@ TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type
     file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
 
     std::cout << "Done reading Topic Record" << std::endl;
+    printUUID(topic_id);
 }
 
 PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
@@ -99,6 +109,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     convertBE32toH(partition_id, leader, leader_epoch, partition_epoch);
 
     std::cout << "Done reading Partition Record" << std::endl;
+    printUUID(topic_id);
 }
 
 std::unique_ptr<RecordValue> RecordValue::parseRecordValue(std::ifstream &file)

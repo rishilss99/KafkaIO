@@ -127,7 +127,7 @@ private:
             int16_t value = varint_pair.first;
             value = (value << 8) | varint_pair.second;
             convertBE16toH(value);
-            return value/2; // zig-zag encoding
+            return value / 2; // zig-zag encoding
         }
 
     private:
