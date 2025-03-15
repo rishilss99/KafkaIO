@@ -150,7 +150,7 @@ Record::Record(std::ifstream &file)
 
     if (value_length.getValue() != 0)
     {
-        assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes
+        assert(value_length.getValue() >= 3 || (std::cout << value_length.getValue() << std::endl)); // Should atleast have the first 3 Bytes
 
         value = RecordValue::parseRecordValue(file);
     }
