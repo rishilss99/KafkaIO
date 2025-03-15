@@ -198,7 +198,7 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
                                                                    .tag_buffer = 0};
     bool topic_in_records = false;
 
-    while (!file.eof())
+    while (!file.eof() && !topic_in_records)
     {
         RecordBatch temp_batch(file);
 
