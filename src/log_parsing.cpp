@@ -17,9 +17,9 @@ static void readCompactString(std::ifstream &file, int16_t &len, std::vector<cha
 
 static void printUUID(UUID &id)
 {
-    for(auto elem: id)
+    for(int i = 0; i < id.size(); i++)
     {
-        std::cout << elem << " ";
+        std::cout << id[i] << " ";
     }
     std::cout << std::endl;
 }
