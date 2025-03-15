@@ -117,7 +117,7 @@ private:
         void readValue(std::ifstream &file)
         {
             file.read(reinterpret_cast<char *>(&varint_pair.first), sizeof(varint_pair.first));
-            if (varint_pair.first < 0) // For leading but 0 check
+            if (varint_pair.first < 0) // For leading bit 0 check
             {
                 file.read(reinterpret_cast<char *>(&varint_pair.second), sizeof(varint_pair.second));
             }
@@ -125,7 +125,7 @@ private:
         int16_t getValue()
         {
             int16_t value = varint_pair.second;
-            value = (value << 8) + varint_pair.first;
+            value = (value << 8) | varint_pair.first;
             return value;
         }
 
