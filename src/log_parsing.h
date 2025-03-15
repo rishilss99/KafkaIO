@@ -126,6 +126,7 @@ private:
         {
             int16_t value = varint_pair.second;
             value = (value << 8) | varint_pair.first;
+            std::cout << "Get Value: " << varint_pair.first << "," << varint_pair.second << std::endl;
             return value;
         }
 
