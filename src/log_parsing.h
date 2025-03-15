@@ -117,7 +117,7 @@ private:
         void readValue(std::ifstream &file)
         {
             file.read(reinterpret_cast<char *>(&varint_pair.first), sizeof(varint_pair.first));
-            if (varint_pair.first >= 0) // For leading but 0 check
+            if (varint_pair.first < 0) // For leading but 0 check
             {
                 file.read(reinterpret_cast<char *>(&varint_pair.second), sizeof(varint_pair.second));
             }
