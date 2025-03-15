@@ -213,6 +213,7 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
 
                 if (topic_name == topic_record.topic_name)
                 {
+                    response_topic.error_code = 0;
                     response_topic.topic_id = topic_record.topic_id;
                     topic_in_records = true;
                 }
@@ -241,11 +242,6 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
                 }
             }
         }
-    }
-
-    if (topic_in_records)
-    {
-        response_topic.error_code = 0;
     }
 
     file.seekg(0); // clear is implicit
