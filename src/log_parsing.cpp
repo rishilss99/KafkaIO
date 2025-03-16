@@ -157,9 +157,11 @@ Record::Record(std::ifstream &file)
     file.read(reinterpret_cast<char *>(&offset_delta), sizeof(offset_delta));
     file.read(reinterpret_cast<char *>(&key_length), sizeof(key_length));
 
+    int8_t key_elem;
     for (int i = 0; i < key_length - 1; i++)
     {
-        key.push_back(file.get());
+        file.read(reinterpret_cast<char *>(&key_elem), sizeof(key_elem));
+        key.push_back(key_elem);
     }
 
     value_length.readValue(file);
@@ -193,6 +195,8 @@ RecordBatch::RecordBatch(std::ifstream &file)
     convertBE16toH(attributes, producer_epoch);
     convertBE32toH(batch_length, partition_leader_epoch, crc, last_offset_delta, base_sequence, records_length);
     convertBE64toH(base_offset, base_timestamp, max_timestamp, producer_id);
+
+    std::cout << "Records length: " << records_length << std::endl;
 
     for (int i = 0; i < records_length; i++)
     {
@@ -259,6 +263,8 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
             }
         }
     }
+
+    std::cout << "File ended: " << file.eof() << std::endl;
 
     file.seekg(0); // clear is implicit
 
