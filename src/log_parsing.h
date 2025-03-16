@@ -122,7 +122,7 @@ private:
             {
                 file.read(reinterpret_cast<char *>(&varint_pair.second), sizeof(varint_pair.second));
                 varint = varint_pair.second;
-                varint = (varint << 7) | (varint_pair.second & 0x7F);
+                varint = (varint << 7) | (varint_pair.first & 0x7F);
             }
             else
             {
