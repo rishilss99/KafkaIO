@@ -15,6 +15,15 @@ static void readCompactString(std::ifstream &file, int16_t &len, std::vector<cha
     file.read(str.data(), len - 1);
 }
 
+static void printUUID(const UUID &id)
+{
+    for(auto i = 0; i < id.size(); i++)
+    {
+        std::cout << id[i];
+    }
+    std::cout << std::endl;
+}
+
 FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
     std::cout << "Start reading Feature Level Record" << std::endl;
@@ -198,7 +207,7 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
                                                                    .tag_buffer = 0};
     bool topic_in_records = false;
 
-    while (!file.eof() && !topic_in_records)
+    while (!file.eof())
     {
         RecordBatch temp_batch(file);
 
@@ -216,53 +225,37 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
                     response_topic.error_code = 0;
                     response_topic.topic_id = topic_record.topic_id;
                     topic_in_records = true;
-                    break;
+                }
+            }
+            else if (record->value->getRecordType() == RecordValue::RECORD_VALUE::PARTITION)
+            {
+                const PartitionRecord &partition_record = dynamic_cast<const PartitionRecord &>(*(record->value));
+
+                printUUID(partition_record.topic_id);
+
+                if (topic_in_records && (partition_record.topic_id == response_topic.topic_id))
+                {
+                    DescribeTopicPartitionsResponseBodyV0::Topic::Partition response_partition = {.error_code = 0, // Introduce macros for error codes
+                                                                                                  .partition_index = partition_record.partition_id,
+                                                                                                  .leader_id = partition_record.leader,
+                                                                                                  .leader_epoch = partition_record.leader_epoch,
+                                                                                                  .replica_nodes_array_len = partition_record.replica_array_len,
+                                                                                                  .replica_nodes_array = partition_record.replica_array,
+                                                                                                  .isr_nodes_array_len = partition_record.isr_array_len,
+                                                                                                  .isr_nodes_array = partition_record.isr_array,
+                                                                                                  .elr_nodes_array_len = 1,
+                                                                                                  .last_known_elr_nodes_array_len = 1,
+                                                                                                  .offline_replica_nodes_array_len = 1,
+                                                                                                  .tag_buffer = 0};
+
+                    response_topic.partitions_array_len += 1;
+                    response_topic.partitions_array.push_back(response_partition);
                 }
             }
         }
     }
 
     file.seekg(0); // clear is implicit
-
-    if (topic_in_records)
-    {
-        while (!file.eof())
-        {
-            RecordBatch temp_batch(file);
-
-            for (auto &record : temp_batch.records)
-            {
-                if (record->value == nullptr)
-                    continue;
-
-                if (record->value->getRecordType() == RecordValue::RECORD_VALUE::PARTITION)
-                {
-                    const PartitionRecord &partition_record = dynamic_cast<const PartitionRecord &>(*(record->value));
-
-                    if (partition_record.topic_id == response_topic.topic_id)
-                    {
-                        DescribeTopicPartitionsResponseBodyV0::Topic::Partition response_partition = {.error_code = 0, // Introduce macros for error codes
-                                                                                                      .partition_index = partition_record.partition_id,
-                                                                                                      .leader_id = partition_record.leader,
-                                                                                                      .leader_epoch = partition_record.leader_epoch,
-                                                                                                      .replica_nodes_array_len = partition_record.replica_array_len,
-                                                                                                      .replica_nodes_array = partition_record.replica_array,
-                                                                                                      .isr_nodes_array_len = partition_record.isr_array_len,
-                                                                                                      .isr_nodes_array = partition_record.isr_array,
-                                                                                                      .elr_nodes_array_len = 1,
-                                                                                                      .last_known_elr_nodes_array_len = 1,
-                                                                                                      .offline_replica_nodes_array_len = 1,
-                                                                                                      .tag_buffer = 0};
-
-                        response_topic.partitions_array_len += 1;
-                        response_topic.partitions_array.push_back(response_partition);
-                    }
-                }
-            }
-        }
-
-        file.seekg(0); // clear is implicit
-    }
 
     return response_topic;
 }
