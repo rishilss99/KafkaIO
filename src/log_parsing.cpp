@@ -17,16 +17,16 @@ static void readCompactString(std::ifstream &file, int16_t &len, std::vector<cha
 
 static void printUUID(const UUID &id)
 {
-    for(auto i = 0; i < id.size(); i++)
+    for(auto elem: id)
     {
-        std::cout << id[i];
+        std::cout << static_cast<int>(elem) << " ";
     }
     std::cout << std::endl;
 }
 
 FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
-    std::cout << "Start reading Feature Level Record" << std::endl;
+    // std::cout << "Start reading Feature Level Record" << std::endl;
 
     readCompactString(file, name_length, name);
     file.read(reinterpret_cast<char *>(&feature_level), sizeof(feature_level));
@@ -34,23 +34,23 @@ FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version
 
     convertBE16toH(feature_level);
 
-    std::cout << "Done reading Feature Level Record" << std::endl;
+    // std::cout << "Done reading Feature Level Record" << std::endl;
 }
 
 TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
-    std::cout << "Start reading Topic Record" << std::endl;
+    // std::cout << "Start reading Topic Record" << std::endl;
 
     readCompactString(file, name_length, topic_name);
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
     file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
 
-    std::cout << "Done reading Topic Record" << std::endl;
+    // std::cout << "Done reading Topic Record" << std::endl;
 }
 
 PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
-    std::cout << "Start reading Partition Record" << std::endl;
+    // std::cout << "Start reading Partition Record" << std::endl;
 
     file.read(reinterpret_cast<char *>(&partition_id), sizeof(partition_id));
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
@@ -107,7 +107,7 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
 
     convertBE32toH(partition_id, leader, leader_epoch, partition_epoch);
 
-    std::cout << "Done reading Partition Record" << std::endl;
+    // std::cout << "Done reading Partition Record" << std::endl;
 }
 
 std::unique_ptr<RecordValue> RecordValue::parseRecordValue(std::ifstream &file)
@@ -222,6 +222,10 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
 
                 if (topic_name == topic_record.topic_name)
                 {
+                    std::cout << "Topic UUID:";
+
+                    printUUID(topic_record.topic_id);
+
                     response_topic.error_code = 0;
                     response_topic.topic_id = topic_record.topic_id;
                     topic_in_records = true;
@@ -230,6 +234,8 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
             else if (record->value->getRecordType() == RecordValue::RECORD_VALUE::PARTITION)
             {
                 const PartitionRecord &partition_record = dynamic_cast<const PartitionRecord &>(*(record->value));
+
+                std::cout << "Partition UUID:";
 
                 printUUID(partition_record.topic_id);
 
