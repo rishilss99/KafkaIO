@@ -118,17 +118,20 @@ private:
         {
             std::pair<int8_t, int8_t> varint_pair;
             file.read(reinterpret_cast<char *>(&varint_pair.first), sizeof(varint_pair.first));
+            std::cout << std::bitset<8>(varint_pair.first) << " ";
             if (varint_pair.first < 0) // For leading bit 0 check
             {
                 file.read(reinterpret_cast<char *>(&varint_pair.second), sizeof(varint_pair.second));
                 varint = varint_pair.second;
                 varint = (varint << 7) | (varint_pair.first & 0x7F);
+                std::cout << std::bitset<8>(varint_pair.second);
             }
             else
             {
                 varint = varint_pair.first;   
             }
             varint /= 2; // zig-zag encoding
+            std::cout << std::endl;
         }
         int getValue()
         {
