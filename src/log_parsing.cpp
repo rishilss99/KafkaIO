@@ -157,14 +157,14 @@ Record::Record(std::ifstream &file)
     file.read(reinterpret_cast<char *>(&offset_delta), sizeof(offset_delta));
     file.read(reinterpret_cast<char *>(&key_length), sizeof(key_length));
 
-    std::cout << "Key length: " << key_length << std::endl;
+    std::cout << "Key length: " << static_cast<int>(key_length) << std::endl;
 
-    // int8_t key_elem;
-    // for (int i = 0; i < key_length - 1; i++)
-    // {
-    //     file.read(reinterpret_cast<char *>(&key_elem), sizeof(key_elem));
-    //     key.push_back(key_elem);
-    // }
+    int8_t key_elem;
+    for (int i = 0; i < key_length - 1; i++)
+    {
+        file.read(reinterpret_cast<char *>(&key_elem), sizeof(key_elem));
+        key.push_back(key_elem);
+    }
 
     value_length.readValue(file);
 
