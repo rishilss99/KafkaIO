@@ -113,25 +113,30 @@ private:
     class Varint
     {
     public:
-        Varint() : varint_pair(0, 0) {}
+        Varint() = default;
         void readValue(std::ifstream &file)
         {
+            std::pair<int8_t, int8_t> varint_pair;
             file.read(reinterpret_cast<char *>(&varint_pair.first), sizeof(varint_pair.first));
             if (varint_pair.first < 0) // For leading bit 0 check
             {
                 file.read(reinterpret_cast<char *>(&varint_pair.second), sizeof(varint_pair.second));
+                varint = varint_pair.second;
+                varint = (varint << 7) | (varint_pair.second & 0x7F);
             }
+            else
+            {
+                varint = varint_pair.first;   
+            }
+            varint /= 2; // zig-zag encoding
         }
-        int16_t getValue()
+        int getValue()
         {
-            int16_t value = varint_pair.first;
-            value = (value << 8) | varint_pair.second;
-            convertBE16toH(value);
-            return value / 2; // zig-zag encoding
+            return varint;
         }
 
     private:
-        std::pair<int8_t, int8_t> varint_pair;
+        int varint;
     };
 
 private:
