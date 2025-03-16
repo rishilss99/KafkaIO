@@ -26,7 +26,7 @@ static void printUUID(const UUID &id)
 
 FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
 {
-    // std::cout << "Start reading Feature Level Record" << std::endl;
+    std::cout << "Start reading Feature Level Record" << std::endl;
 
     readCompactString(file, name_length, name);
     file.read(reinterpret_cast<char *>(&feature_level), sizeof(feature_level));
@@ -34,7 +34,7 @@ FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version
 
     convertBE16toH(feature_level);
 
-    // std::cout << "Done reading Feature Level Record" << std::endl;
+    std::cout << "Done reading Feature Level Record" << std::endl;
 }
 
 TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
@@ -263,8 +263,6 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
             }
         }
     }
-
-    std::cout << "File ended: " << file.eof() << std::endl;
 
     file.seekg(0); // clear is implicit
 
