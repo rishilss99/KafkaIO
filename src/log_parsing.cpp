@@ -17,7 +17,7 @@ static void readCompactString(std::ifstream &file, int16_t &len, std::vector<cha
 
 static void printUUID(const UUID &id)
 {
-    for(auto elem: id)
+    for (auto elem : id)
     {
         std::cout << static_cast<int>(elem) << " ";
     }
@@ -157,21 +157,18 @@ Record::Record(std::ifstream &file)
     file.read(reinterpret_cast<char *>(&offset_delta), sizeof(offset_delta));
     file.read(reinterpret_cast<char *>(&key_length), sizeof(key_length));
 
-    int8_t key_elem;
-    for (int i = 0; i < key_length - 1; i++)
-    {
-        file.read(reinterpret_cast<char *>(&key_elem), sizeof(key_elem));
-        key.push_back(key_elem);
-    }
+    // int8_t key_elem;
+    // for (int i = 0; i < key_length - 1; i++)
+    // {
+    //     file.read(reinterpret_cast<char *>(&key_elem), sizeof(key_elem));
+    //     key.push_back(key_elem);
+    // }
 
     value_length.readValue(file);
 
-    if (value_length.getValue() != 0)
-    {
-        assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes
+    assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes
 
-        value = RecordValue::parseRecordValue(file);
-    }
+    value = RecordValue::parseRecordValue(file);
 
     file.read(reinterpret_cast<char *>(&headers_array_count), sizeof(headers_array_count));
 }
