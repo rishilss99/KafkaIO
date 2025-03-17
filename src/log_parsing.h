@@ -10,6 +10,42 @@ class PartitionRecord;
 class Record;
 class RecordBatch;
 
+class Varint
+{
+public:
+    Varint() = default;
+    void readValue(std::ifstream &file)
+    {
+        int8_t val;
+        std::stack<int8_t> varint_elems;
+        do
+        {
+            file.read(reinterpret_cast<char *>(&val), sizeof(val));
+            varint_elems.push(val);
+        } while (val < 0); // For leading bit 0 check
+
+        assert(varint_elems.size() > 0 && varint_elems.size() <= 4); // Only handling int32_t
+
+        varint = varint_elems.top();
+        varint_elems.pop();
+
+        while (!varint_elems.empty())
+        {
+            varint = (varint << 7) | (varint_elems.top() & 0x7F);
+            varint_elems.pop();
+        }
+
+        varint /= 2; // zig-zag encoding
+    }
+    int32_t getValue()
+    {
+        return varint;
+    }
+
+private:
+    int32_t varint;
+};
+
 class LogParser
 {
 public:
@@ -110,44 +146,11 @@ public:
     Record(std::ifstream &file);
 
 private:
-    class Varint
-    {
-    public:
-        Varint() = default;
-        void readValue(std::ifstream &file)
-        {
-            std::pair<int8_t, int8_t> varint_pair;
-            file.read(reinterpret_cast<char *>(&varint_pair.first), sizeof(varint_pair.first));
-            std::cout << std::bitset<8>(varint_pair.first) << " ";
-            if (varint_pair.first < 0) // For leading bit 0 check
-            {
-                file.read(reinterpret_cast<char *>(&varint_pair.second), sizeof(varint_pair.second));
-                varint = varint_pair.second;
-                varint = (varint << 7) | (varint_pair.first & 0x7F);
-                std::cout << std::bitset<8>(varint_pair.second);
-            }
-            else
-            {
-                varint = varint_pair.first;   
-            }
-            varint /= 2; // zig-zag encoding
-            std::cout << std::endl;
-        }
-        int getValue()
-        {
-            return varint;
-        }
-
-    private:
-        int varint;
-    };
-
-private:
-    int8_t length;
+    Varint length;
     int8_t attributes;
-    int8_t timestamp_delta;
-    int8_t offset_delta;
-    int8_t key_length;
+    Varint timestamp_delta;
+    Varint offset_delta;
+    Varint key_length;
     std::vector<int8_t> key;
     Varint value_length;
     std::unique_ptr<RecordValue> value;

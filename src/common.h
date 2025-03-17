@@ -27,6 +27,7 @@
 #include <numeric>
 #include <variant>
 #include <bitset>
+#include <stack>
 
 inline void convertBE16toH(int16_t &first)
 {
