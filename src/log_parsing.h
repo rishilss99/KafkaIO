@@ -37,13 +37,47 @@ public:
 
         varint /= 2; // zig-zag encoding
     }
-    int32_t getValue()
+    int32_t getValue() const
     {
         return varint;
     }
 
 private:
     int32_t varint;
+};
+
+class UnsignedVarint
+{
+public:
+    UnsignedVarint() = default;
+    void readValue(std::ifstream &file)
+    {
+        uint8_t val;
+        std::stack<uint8_t> unsigned_varint_elems;
+        do
+        {
+            file.read(reinterpret_cast<char *>(&val), sizeof(val));
+            unsigned_varint_elems.push(val);
+        } while (val > 127); // For leading bit 0 check
+
+        assert(unsigned_varint_elems.size() > 0 && unsigned_varint_elems.size() <= 4); // Only handling int32_t
+
+        unsigned_varint = unsigned_varint_elems.top();
+        unsigned_varint_elems.pop();
+
+        while (!unsigned_varint_elems.empty())
+        {
+            unsigned_varint = (unsigned_varint << 7) | (unsigned_varint_elems.top() & 0x7F);
+            unsigned_varint_elems.pop();
+        }
+    }
+    uint32_t getValue() const
+    {
+        return unsigned_varint;
+    }
+
+private:
+    uint32_t unsigned_varint;
 };
 
 class LogParser
@@ -90,10 +124,10 @@ public:
     RECORD_VALUE getRecordType() override { return RECORD_VALUE::FEATURE_LEVEL; }
 
 private:
-    int8_t name_length;
+    UnsignedVarint name_length;
     std::vector<char> name;
     int16_t feature_level;
-    int8_t tagged_fields_count;
+    UnsignedVarint tagged_fields_count;
 
     friend DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRecords(int8_t topic_name_len, const std::vector<char> &topic_name);
 };
@@ -105,10 +139,10 @@ public:
     RECORD_VALUE getRecordType() override { return RECORD_VALUE::TOPIC; }
 
 private:
-    int8_t name_length;
+    UnsignedVarint name_length;
     std::vector<char> topic_name;
     UUID topic_id;
-    int8_t tagged_fields_count;
+    UnsignedVarint tagged_fields_count;
 
     friend DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRecords(int8_t topic_name_len, const std::vector<char> &topic_name);
 };
@@ -122,20 +156,20 @@ public:
 private:
     int32_t partition_id;
     UUID topic_id;
-    int8_t replica_array_len;
+    UnsignedVarint replica_array_len;
     std::vector<int32_t> replica_array; // Kafka Compact arry (N+1)
-    int8_t isr_array_len;
+    UnsignedVarint isr_array_len;
     std::vector<int32_t> isr_array; // Kafka Compact arry (N+1)
-    int8_t rr_array_len;
+    UnsignedVarint rr_array_len;
     std::vector<int32_t> rr_array; // Kafka Compact arry (N+1)
-    int8_t ar_array_len;
+    UnsignedVarint ar_array_len;
     std::vector<int32_t> ar_array; // Kafka Compact arry (N+1)
     int32_t leader;
     int32_t leader_epoch;
     int32_t partition_epoch;
-    int8_t directories_array_len;
+    UnsignedVarint directories_array_len;
     std::vector<UUID> directories_array; // Kafka Compact arry (N+1)
-    int8_t tagged_fields_count;
+    UnsignedVarint tagged_fields_count;
 
     friend DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRecords(int8_t topic_name_len, const std::vector<char> &topic_name);
 };
@@ -154,7 +188,7 @@ private:
     std::vector<int8_t> key;
     Varint value_length;
     std::unique_ptr<RecordValue> value;
-    int8_t headers_array_count;
+    UnsignedVarint headers_array_count;
 
     friend DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRecords(int8_t topic_name_len, const std::vector<char> &topic_name);
 };

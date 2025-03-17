@@ -1,18 +1,10 @@
 #include "log_parsing.h"
 
-static void readCompactString(std::ifstream &file, int8_t &len, std::vector<char> &str)
+static void readCompactString(std::ifstream &file, UnsignedVarint &len, std::vector<char> &str)
 {
-    file.read(reinterpret_cast<char *>(&len), sizeof(len));
-    str.resize(len - 1);
-    file.read(str.data(), len - 1);
-}
-
-static void readCompactString(std::ifstream &file, int16_t &len, std::vector<char> &str)
-{
-    file.read(reinterpret_cast<char *>(&len), sizeof(len));
-    convertBE16toH(len);
-    str.resize(len - 1);
-    file.read(str.data(), len - 1);
+    len.readValue(file);
+    str.resize(len.getValue() - 1);
+    file.read(str.data(), len.getValue() - 1);
 }
 
 static void printUUID(const UUID &id)
@@ -30,7 +22,7 @@ FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version
 
     readCompactString(file, name_length, name);
     file.read(reinterpret_cast<char *>(&feature_level), sizeof(feature_level));
-    file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
+    tagged_fields_count.readValue(file);
 
     convertBE16toH(feature_level);
 
@@ -43,7 +35,7 @@ TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type
 
     readCompactString(file, name_length, topic_name);
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
-    file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
+    tagged_fields_count.readValue(file);
 
     // std::cout << "Done reading Topic Record" << std::endl;
     std::cout << "Topic UUID:";
@@ -58,36 +50,36 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     file.read(reinterpret_cast<char *>(&partition_id), sizeof(partition_id));
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
 
-    file.read(reinterpret_cast<char *>(&replica_array_len), sizeof(replica_array_len));
+    replica_array_len.readValue(file);
     int32_t replica_id;
-    for (int i = 0; i < replica_array_len - 1; i++)
+    for (int i = 0; i < replica_array_len.getValue() - 1; i++)
     {
         file.read(reinterpret_cast<char *>(&replica_id), sizeof(replica_id));
         convertBE32toH(replica_id);
         replica_array.push_back(replica_id);
     }
 
-    file.read(reinterpret_cast<char *>(&isr_array_len), sizeof(isr_array_len));
+    isr_array_len.readValue(file);
     int32_t isr_id;
-    for (int i = 0; i < isr_array_len - 1; i++)
+    for (int i = 0; i < isr_array_len.getValue() - 1; i++)
     {
         file.read(reinterpret_cast<char *>(&isr_id), sizeof(isr_id));
         convertBE32toH(isr_id);
         isr_array.push_back(isr_id);
     }
 
-    file.read(reinterpret_cast<char *>(&rr_array_len), sizeof(rr_array_len));
+    rr_array_len.readValue(file);
     int32_t rr_id;
-    for (int i = 1; i < rr_array_len; i++)
+    for (int i = 0; i < rr_array_len.getValue() - 1; i++)
     {
         file.read(reinterpret_cast<char *>(&rr_id), sizeof(rr_id));
         convertBE32toH(rr_id);
         rr_array.push_back(rr_id);
     }
 
-    file.read(reinterpret_cast<char *>(&ar_array_len), sizeof(ar_array_len));
+    ar_array_len.readValue(file);
     int32_t ar_id;
-    for (int i = 0; i < ar_array_len - 1; i++)
+    for (int i = 0; i < ar_array_len.getValue() - 1; i++)
     {
         file.read(reinterpret_cast<char *>(&ar_id), sizeof(ar_id));
         convertBE32toH(ar_id);
@@ -98,15 +90,15 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     file.read(reinterpret_cast<char *>(&leader_epoch), sizeof(leader_epoch));
     file.read(reinterpret_cast<char *>(&partition_epoch), sizeof(partition_epoch));
 
-    file.read(reinterpret_cast<char *>(&directories_array_len), sizeof(directories_array_len));
+    directories_array_len.readValue(file);
     UUID directory_uuid;
-    for (int i = 0; i < directories_array_len - 1; i++)
+    for (int i = 0; i < directories_array_len.getValue() - 1; i++)
     {
         file.read(reinterpret_cast<char *>(directory_uuid.data()), directory_uuid.size());
         directories_array.push_back(directory_uuid);
     }
 
-    file.read(reinterpret_cast<char *>(&tagged_fields_count), sizeof(tagged_fields_count));
+    tagged_fields_count.readValue(file);
 
     convertBE32toH(partition_id, leader, leader_epoch, partition_epoch);
 
@@ -170,7 +162,7 @@ Record::Record(std::ifstream &file)
 
     value = RecordValue::parseRecordValue(file);
 
-    file.read(reinterpret_cast<char *>(&headers_array_count), sizeof(headers_array_count));
+    headers_array_count.readValue(file);
 }
 
 RecordBatch::RecordBatch(std::ifstream &file)
@@ -245,9 +237,9 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
                                                                                                   .partition_index = partition_record.partition_id,
                                                                                                   .leader_id = partition_record.leader,
                                                                                                   .leader_epoch = partition_record.leader_epoch,
-                                                                                                  .replica_nodes_array_len = partition_record.replica_array_len,
+                                                                                                  .replica_nodes_array_len = partition_record.replica_array_len.getValue(),
                                                                                                   .replica_nodes_array = partition_record.replica_array,
-                                                                                                  .isr_nodes_array_len = partition_record.isr_array_len,
+                                                                                                  .isr_nodes_array_len = partition_record.isr_array_len.getValue(),
                                                                                                   .isr_nodes_array = partition_record.isr_array,
                                                                                                   .elr_nodes_array_len = 1,
                                                                                                   .last_known_elr_nodes_array_len = 1,
