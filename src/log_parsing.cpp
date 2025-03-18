@@ -149,8 +149,6 @@ Record::Record(std::ifstream &file)
     offset_delta.readValue(file);
     key_length.readValue(file);
 
-    std::cout << key_length.getValue() << std::endl;
-
     int8_t key_elem;
     for (int i = 0; i < key_length.getValue(); i++)
     {
@@ -186,6 +184,8 @@ RecordBatch::RecordBatch(std::ifstream &file)
     convertBE16toH(attributes, producer_epoch);
     convertBE32toH(batch_length, partition_leader_epoch, crc, last_offset_delta, base_sequence, records_length);
     convertBE64toH(base_offset, base_timestamp, max_timestamp, producer_id);
+
+    std::cout << "Record batch offset: " << base_offset << std::endl;
 
     std::cout << "Records length: " << records_length << std::endl;
 
