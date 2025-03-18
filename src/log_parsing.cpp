@@ -149,6 +149,8 @@ Record::Record(std::ifstream &file)
     offset_delta.readValue(file);
     key_length.readValue(file);
 
+    std::cout << key_length.getValue() << std::endl;
+
     int8_t key_elem;
     for (int i = 0; i < key_length.getValue(); i++)
     {
