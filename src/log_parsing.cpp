@@ -24,6 +24,8 @@ FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version
     file.read(reinterpret_cast<char *>(&feature_level), sizeof(feature_level));
     tagged_fields_count.readValue(file);
 
+    std::cout << tagged_fields_count.getValue() << std::endl;
+
     convertBE16toH(feature_level);
 
     std::cout << "Done reading Feature Level Record" << std::endl;
@@ -36,6 +38,8 @@ TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type
     readCompactString(file, name_length, topic_name);
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
     tagged_fields_count.readValue(file);
+
+    std::cout << tagged_fields_count.getValue() << std::endl;
 
     // std::cout << "Done reading Topic Record" << std::endl;
     std::cout << "Topic UUID:";
@@ -99,6 +103,8 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     }
 
     tagged_fields_count.readValue(file);
+
+    std::cout << tagged_fields_count.getValue() << std::endl;
 
     convertBE32toH(partition_id, leader, leader_epoch, partition_epoch);
 
@@ -184,8 +190,6 @@ RecordBatch::RecordBatch(std::ifstream &file)
     convertBE16toH(attributes, producer_epoch);
     convertBE32toH(batch_length, partition_leader_epoch, crc, last_offset_delta, base_sequence, records_length);
     convertBE64toH(base_offset, base_timestamp, max_timestamp, producer_id);
-
-    std::cout << "Record batch offset: " << base_offset << std::endl;
 
     std::cout << "Records length: " << records_length << std::endl;
 
