@@ -24,8 +24,6 @@ FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version
     file.read(reinterpret_cast<char *>(&feature_level), sizeof(feature_level));
     tagged_fields_count.readValue(file);
 
-    std::cout << tagged_fields_count.getValue() << std::endl;
-
     convertBE16toH(feature_level);
 
     std::cout << "Done reading Feature Level Record" << std::endl;
@@ -38,8 +36,6 @@ TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type
     readCompactString(file, name_length, topic_name);
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
     tagged_fields_count.readValue(file);
-
-    std::cout << tagged_fields_count.getValue() << std::endl;
 
     // std::cout << "Done reading Topic Record" << std::endl;
     std::cout << "Topic UUID:";
@@ -104,8 +100,6 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
 
     tagged_fields_count.readValue(file);
 
-    std::cout << tagged_fields_count.getValue() << std::endl;
-
     convertBE32toH(partition_id, leader, leader_epoch, partition_epoch);
 
     // std::cout << "Done reading Partition Record" << std::endl;
@@ -163,6 +157,8 @@ Record::Record(std::ifstream &file)
     }
 
     value_length.readValue(file);
+
+    std::cout << "Value length:" << value_length.getValue() << std::endl;
 
     assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes
 
