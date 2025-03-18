@@ -139,7 +139,7 @@ private:
            << "Feature Level: " << static_cast<int>(feature_level) << "\n"
            << "Tagged Fields Count: " << tagged_fields_count.getValue() << "\n";
 
-        std::cout << ss.str();
+        std::cout << ss.str() << std::endl;
     }
 
     UnsignedVarint name_length;
@@ -175,7 +175,7 @@ private:
         ss << "\n"
            << "Tagged Fields Count: " << tagged_fields_count.getValue() << "\n";
 
-        std::cout << ss.str();
+        std::cout << ss.str() << std::endl;
     }
 
     UnsignedVarint name_length;
@@ -242,7 +242,7 @@ private:
         ss << "\n"
            << "Tagged Fields Count: " << tagged_fields_count.getValue() << "\n";
 
-        std::cout << ss.str();
+        std::cout << ss.str() << std::endl;
     }
 
     int32_t partition_id;
@@ -290,7 +290,7 @@ private:
            << "Value Length: " << value_length.getValue() << "\n"
            << "Headers Array Count: " << headers_array_count.getValue() << "\n";
 
-        std::cout << ss.str();
+        std::cout << ss.str() << std::endl;
     }
 
     Varint length;
@@ -330,7 +330,7 @@ private:
            << "Base Sequence: " << base_sequence << "\n"
            << "Records Length: " << records_length << "\n";
 
-        std::cout << ss.str();
+        std::cout << ss.str() << std::endl;
     }
 
     int64_t base_offset;

@@ -165,6 +165,8 @@ RecordBatch::RecordBatch(std::ifstream &file)
     convertBE32toH(batch_length, partition_leader_epoch, crc, last_offset_delta, base_sequence, records_length);
     convertBE64toH(base_offset, base_timestamp, max_timestamp, producer_id);
 
+    printDump();
+
     for (int i = 0; i < records_length; i++)
     {
         records.push_back(std::make_unique<Record>(file));
