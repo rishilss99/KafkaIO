@@ -150,7 +150,7 @@ Record::Record(std::ifstream &file)
     key_length.readValue(file);
 
     int8_t key_elem;
-    for (int i = 0; i < key_length.getValue() - 1; i++)
+    for (int i = 0; i < key_length.getValue(); i++)
     {
         file.read(reinterpret_cast<char *>(&key_elem), sizeof(key_elem));
         key.push_back(key_elem);
