@@ -126,6 +126,22 @@ public:
     RECORD_VALUE getRecordType() override { return RECORD_VALUE::FEATURE_LEVEL; }
 
 private:
+    void printDump() const
+    {
+        std::stringstream ss;
+
+        ss << "FeatureLevelRecord" << "\n"
+           << "Frame version: " << static_cast<int>(frame_version) << "\n"
+           << "Type: " << static_cast<int>(type) << "\n"
+           << "Version: " << static_cast<int>(version) << "\n"
+           << "Name Length: " << name_length.getValue() << "\n"
+           << "Name: " << std::string(name.begin(), name.end()) << "\n"
+           << "Feature Level: " << static_cast<int>(feature_level) << "\n"
+           << "Tagged Fields Count: " << tagged_fields_count.getValue() << "\n";
+
+        std::cout << ss.str();
+    }
+
     UnsignedVarint name_length;
     std::vector<char> name;
     int16_t feature_level;
@@ -141,6 +157,27 @@ public:
     RECORD_VALUE getRecordType() override { return RECORD_VALUE::TOPIC; }
 
 private:
+    void printDump() const
+    {
+        std::stringstream ss;
+
+        ss << "TopicRecord" << "\n"
+           << "Frame version: " << static_cast<int>(frame_version) << "\n"
+           << "Type: " << static_cast<int>(type) << "\n"
+           << "Version: " << static_cast<int>(version) << "\n"
+           << "Name Length: " << name_length.getValue() << "\n"
+           << "Topic Name: " << std::string(topic_name.begin(), topic_name.end()) << "\n"
+           << "Topic ID: ";
+
+        std::for_each(topic_id.begin(), topic_id.end(), [&ss](const uint8_t &byte)
+                      { ss << static_cast<uint32_t>(byte); });
+
+        ss << "\n"
+           << "Tagged Fields Count: " << tagged_fields_count.getValue() << "\n";
+
+        std::cout << ss.str();
+    }
+
     UnsignedVarint name_length;
     std::vector<char> topic_name;
     UUID topic_id;
@@ -156,6 +193,58 @@ public:
     RECORD_VALUE getRecordType() override { return RECORD_VALUE::PARTITION; }
 
 private:
+    void printDump() const
+    {
+        std::stringstream ss;
+        ss << "PartitionRecord" << "\n"
+           << "Frame version: " << static_cast<int>(frame_version) << "\n"
+           << "Type: " << static_cast<int>(type) << "\n"
+           << "Version: " << static_cast<int>(version) << "\n"
+           << "Partition ID: " << partition_id << "\n"
+           << "Topic ID: ";
+        std::for_each(topic_id.begin(), topic_id.end(), [&ss](const uint8_t &byte)
+                      { ss << static_cast<uint32_t>(byte); });
+        ss << "\n"
+           << "Replica Array Length: " << replica_array_len.getValue() << "\n"
+           << "Replica Array: ";
+        std::for_each(replica_array.begin(), replica_array.end(), [&ss](const int32_t &replica)
+                      { ss << replica << " "; });
+        ss << "\n"
+           << "ISR Array Length: " << isr_array_len.getValue() << "\n"
+           << "ISR Array: ";
+        std::for_each(isr_array.begin(), isr_array.end(), [&ss](const int32_t &isr)
+                      { ss << isr << " "; });
+        ss << "\n"
+           << "RR Array Length: " << rr_array_len.getValue() << "\n"
+           << "RR Array: ";
+        std::for_each(rr_array.begin(), rr_array.end(), [&ss](const int32_t &rr)
+                      { ss << rr << " "; });
+        ss << "\n"
+           << "AR Array Length: " << ar_array_len.getValue() << "\n"
+           << "AR Array: ";
+        std::for_each(ar_array.begin(), ar_array.end(), [&ss](const int32_t &ar)
+                      { ss << ar << " "; });
+        ss << "\n"
+           << "Leader: " << leader << "\n"
+           << "Leader Epoch: " << leader_epoch << "\n"
+           << "Partition Epoch: " << partition_epoch << "\n"
+           << "Directories Array Length: " << directories_array_len.getValue() << "\n"
+           << "Directories Array: ";
+        std::for_each(directories_array.begin(), directories_array.end(), [&ss](const UUID &uuid)
+                      {
+        ss << "[";
+        
+        std::for_each(uuid.begin(), uuid.end(), [&ss](const uint8_t &byte)
+        { ss << static_cast<uint32_t>(byte); });
+        
+        ss << "] "; });
+
+        ss << "\n"
+           << "Tagged Fields Count: " << tagged_fields_count.getValue() << "\n";
+
+        std::cout << ss.str();
+    }
+
     int32_t partition_id;
     UUID topic_id;
     UnsignedVarint replica_array_len;
@@ -182,6 +271,28 @@ public:
     Record(std::ifstream &file);
 
 private:
+    void printDump() const
+    {
+        std::stringstream ss;
+        ss << "Record" << "\n"
+           << "Length: " << length.getValue() << "\n"
+           << "Attributes: " << std::bitset<8>(attributes) << "\n"
+           << "Timestamp Delta: " << timestamp_delta.getValue() << "\n"
+           << "Offset Delta: " << offset_delta.getValue() << "\n"
+           << "Key Length: " << key_length.getValue() << "\n"
+           << "Key: ";
+
+        // For each loop to print key bytes
+        std::for_each(key.begin(), key.end(), [&ss](const int8_t &byte)
+                      { ss << static_cast<int>(byte) << " "; });
+
+        ss << "\n"
+           << "Value Length: " << value_length.getValue() << "\n"
+           << "Headers Array Count: " << headers_array_count.getValue() << "\n";
+
+        std::cout << ss.str();
+    }
+
     Varint length;
     int8_t attributes;
     Varint timestamp_delta;
@@ -201,6 +312,27 @@ public:
     RecordBatch(std::ifstream &file);
 
 private:
+    void printDump() const
+    {
+        std::stringstream ss;
+        ss << "RecordBatch" << "\n"
+           << "Base Offset: " << base_offset << "\n"
+           << "Batch Length: " << batch_length << "\n"
+           << "Partition Leader Epoch: " << partition_leader_epoch << "\n"
+           << "Magic Byte: " << std::bitset<8>(magic_byte) << "\n" // Cast to int to print numeric value
+           << "CRC: " << crc << "\n"
+           << "Attributes: " << attributes << "\n"
+           << "Last Offset Delta: " << last_offset_delta << "\n"
+           << "Base Timestamp: " << base_timestamp << "\n"
+           << "Max Timestamp: " << max_timestamp << "\n"
+           << "Producer ID: " << producer_id << "\n"
+           << "Producer Epoch: " << producer_epoch << "\n"
+           << "Base Sequence: " << base_sequence << "\n"
+           << "Records Length: " << records_length << "\n";
+
+        std::cout << ss.str();
+    }
+
     int64_t base_offset;
     int32_t batch_length;
     int32_t partition_leader_epoch;
