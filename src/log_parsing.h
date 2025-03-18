@@ -17,6 +17,7 @@ public:
     void readValue(std::ifstream &file)
     {
         int8_t val;
+        constexpr int8_t NO_MSB = 0x7F;
         std::stack<int8_t> varint_elems;
         do
         {
@@ -31,11 +32,11 @@ public:
 
         while (!varint_elems.empty())
         {
-            varint = (varint << 7) | (varint_elems.top() & 0x7F);
+            varint = (varint << 7) | (varint_elems.top() & NO_MSB);
             varint_elems.pop();
         }
 
-        varint /= 2; // zig-zag encoding
+        varint = (varint >> 1) ^ -(varint & 1);
     }
     int32_t getValue() const
     {
@@ -53,6 +54,7 @@ public:
     void readValue(std::ifstream &file)
     {
         uint8_t val;
+        constexpr uint8_t NO_MSB = 0x7F;
         std::stack<uint8_t> unsigned_varint_elems;
         do
         {
@@ -60,14 +62,14 @@ public:
             unsigned_varint_elems.push(val);
         } while (val > 127); // For leading bit 0 check
 
-        assert(unsigned_varint_elems.size() > 0 && unsigned_varint_elems.size() <= 4); // Only handling int32_t
+        assert(unsigned_varint_elems.size() > 0 && unsigned_varint_elems.size() <= 4); // Only handling uint32_t
 
         unsigned_varint = unsigned_varint_elems.top();
         unsigned_varint_elems.pop();
 
         while (!unsigned_varint_elems.empty())
         {
-            unsigned_varint = (unsigned_varint << 7) | (unsigned_varint_elems.top() & 0x7F);
+            unsigned_varint = (unsigned_varint << 7) | (unsigned_varint_elems.top() & NO_MSB);
             unsigned_varint_elems.pop();
         }
     }
