@@ -130,9 +130,12 @@ Record::Record(std::ifstream &file)
 
     value_length.readValue(file);
 
-    assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes
+    if (value_length.getValue() != 0)
+    {
+        assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes
 
-    value = RecordValue::parseRecordValue(file);
+        value = RecordValue::parseRecordValue(file);
+    }
 
     headers_array_count.readValue(file);
 }
@@ -222,7 +225,7 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
             }
         }
 
-        if(topic_in_records)
+        if (topic_in_records)
         {
             break; // Stop processing to avoid hitting the invalid RecordBatch
         }
