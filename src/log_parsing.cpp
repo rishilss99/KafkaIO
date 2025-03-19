@@ -14,8 +14,6 @@ FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version
     tagged_fields_count.readValue(file);
 
     convertBE16toH(feature_level);
-
-    printDump();
 }
 
 TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
@@ -23,8 +21,6 @@ TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type
     readCompactString(file, name_length, topic_name);
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
     tagged_fields_count.readValue(file);
-
-    printDump();
 }
 
 PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
@@ -83,8 +79,6 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     tagged_fields_count.readValue(file);
 
     convertBE32toH(partition_id, leader, leader_epoch, partition_epoch);
-
-    printDump();
 }
 
 std::unique_ptr<RecordValue> RecordValue::parseRecordValue(std::ifstream &file)
@@ -136,13 +130,15 @@ Record::Record(std::ifstream &file)
 
     value_length.readValue(file);
 
-    assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes
+    assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes (frame_version, type, version)
 
     value = RecordValue::parseRecordValue(file);
 
     headers_array_count.readValue(file);
 
     printDump();
+
+    value->printDump(); // Will always be valid since we will never have value as nullptr
 }
 
 RecordBatch::RecordBatch(std::ifstream &file)

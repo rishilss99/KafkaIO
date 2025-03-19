@@ -110,6 +110,7 @@ public:
     };
     static std::unique_ptr<RecordValue> parseRecordValue(std::ifstream &file);
     virtual RECORD_VALUE getRecordType() = 0;
+    virtual void printDump() const = 0;
     virtual ~RecordValue() {}
 
 protected:
@@ -125,8 +126,7 @@ public:
     FeatureLevelRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_);
     RECORD_VALUE getRecordType() override { return RECORD_VALUE::FEATURE_LEVEL; }
 
-private:
-    void printDump() const
+    void printDump() const override
     {
         std::stringstream ss;
 
@@ -142,6 +142,7 @@ private:
         std::cout << ss.str() << std::endl;
     }
 
+private:
     UnsignedVarint name_length;
     std::vector<char> name;
     int16_t feature_level;
@@ -156,8 +157,7 @@ public:
     TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_);
     RECORD_VALUE getRecordType() override { return RECORD_VALUE::TOPIC; }
 
-private:
-    void printDump() const
+    void printDump() const override
     {
         std::stringstream ss;
 
@@ -178,6 +178,7 @@ private:
         std::cout << ss.str() << std::endl;
     }
 
+private:
     UnsignedVarint name_length;
     std::vector<char> topic_name;
     UUID topic_id;
@@ -192,8 +193,7 @@ public:
     PartitionRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_);
     RECORD_VALUE getRecordType() override { return RECORD_VALUE::PARTITION; }
 
-private:
-    void printDump() const
+    void printDump() const override
     {
         std::stringstream ss;
         ss << "PartitionRecord" << "\n"
@@ -245,6 +245,7 @@ private:
         std::cout << ss.str() << std::endl;
     }
 
+private:
     int32_t partition_id;
     UUID topic_id;
     UnsignedVarint replica_array_len;
@@ -270,7 +271,6 @@ class Record
 public:
     Record(std::ifstream &file);
 
-private:
     void printDump() const
     {
         std::stringstream ss;
@@ -293,6 +293,7 @@ private:
         std::cout << ss.str() << std::endl;
     }
 
+private:
     Varint length;
     int8_t attributes;
     Varint timestamp_delta;
@@ -311,7 +312,6 @@ class RecordBatch
 public:
     RecordBatch(std::ifstream &file);
 
-private:
     void printDump() const
     {
         std::stringstream ss;
@@ -333,6 +333,7 @@ private:
         std::cout << ss.str() << std::endl;
     }
 
+private:
     int64_t base_offset;
     int32_t batch_length;
     int32_t partition_leader_epoch;
