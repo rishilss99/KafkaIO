@@ -14,8 +14,6 @@ FeatureLevelRecord::FeatureLevelRecord(std::ifstream &file, int8_t frame_version
     tagged_fields_count.readValue(file);
 
     convertBE16toH(feature_level);
-
-    printDump();
 }
 
 TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
@@ -23,8 +21,6 @@ TopicRecord::TopicRecord(std::ifstream &file, int8_t frame_version_, int8_t type
     readCompactString(file, name_length, topic_name);
     file.read(reinterpret_cast<char *>(topic_id.data()), topic_id.size());
     tagged_fields_count.readValue(file);
-
-    printDump();
 }
 
 PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int8_t type_, int8_t version_) : RecordValue(frame_version_, type_, version_)
@@ -83,8 +79,6 @@ PartitionRecord::PartitionRecord(std::ifstream &file, int8_t frame_version_, int
     tagged_fields_count.readValue(file);
 
     convertBE32toH(partition_id, leader, leader_epoch, partition_epoch);
-
-    printDump();
 }
 
 std::unique_ptr<RecordValue> RecordValue::parseRecordValue(std::ifstream &file)
@@ -141,8 +135,6 @@ Record::Record(std::ifstream &file)
     value = RecordValue::parseRecordValue(file);
 
     headers_array_count.readValue(file);
-
-    printDump();
 }
 
 RecordBatch::RecordBatch(std::ifstream &file)
@@ -164,8 +156,6 @@ RecordBatch::RecordBatch(std::ifstream &file)
     convertBE16toH(attributes, producer_epoch);
     convertBE32toH(batch_length, partition_leader_epoch, crc, last_offset_delta, base_sequence, records_length);
     convertBE64toH(base_offset, base_timestamp, max_timestamp, producer_id);
-
-    printDump();
 
     for (int i = 0; i < records_length; i++)
     {
@@ -230,6 +220,11 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
                     response_topic.partitions_array.push_back(response_partition);
                 }
             }
+        }
+
+        if(topic_in_records)
+        {
+            break; // Stop processing to avoid hitting the invalid RecordBatch
         }
     }
 
