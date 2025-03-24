@@ -136,9 +136,9 @@ Record::Record(std::ifstream &file)
 
     headers_array_count.readValue(file);
 
-    printDump();
+    // printDump();
 
-    value->printDump(); // Will always be valid since we will never have value as nullptr
+    // value->printDump(); // Will always be valid since we will never have value as nullptr
 }
 
 RecordBatch::RecordBatch(std::ifstream &file)
@@ -161,7 +161,7 @@ RecordBatch::RecordBatch(std::ifstream &file)
     convertBE32toH(batch_length, partition_leader_epoch, crc, last_offset_delta, base_sequence, records_length);
     convertBE64toH(base_offset, base_timestamp, max_timestamp, producer_id);
 
-    printDump();
+    // printDump();
 
     for (int i = 0; i < records_length; i++)
     {
@@ -182,9 +182,12 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
                                                                    .topic_authorized_ops = 0,
                                                                    .tag_buffer = 0};
     bool topic_in_records = false;
+    int count = 0;
 
     while (!file.eof())
     {
+        std::cout << "************************* " << "Loop " << count << " ***********************" << std::endl;
+        count++;
         RecordBatch temp_batch(file);
 
         for (auto &record : temp_batch.records)
