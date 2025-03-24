@@ -130,7 +130,7 @@ Record::Record(std::ifstream &file)
 
     value_length.readValue(file);
 
-    assert(value_length.getValue() >= 3); // Should atleast have the first 3 Bytes (frame_version, type, version)
+    assert(value_length.getValue() >= 3); // Atleast have the first 3 Bytes (frame_version, type, version)
 
     value = RecordValue::parseRecordValue(file);
 
