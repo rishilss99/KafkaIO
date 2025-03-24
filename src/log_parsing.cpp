@@ -227,11 +227,6 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
                 }
             }
         }
-
-        if(topic_in_records)
-        {
-            break; // Stop processing to avoid hitting the invalid RecordBatch
-        }
     }
 
     file.seekg(0); // clear is implicit
