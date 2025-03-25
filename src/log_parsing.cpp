@@ -182,14 +182,9 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
                                                                    .topic_authorized_ops = 0,
                                                                    .tag_buffer = 0};
     bool topic_in_records = false;
-    int count = 0;
 
-    while (!file.eof())
+    while (file.tellg() != FILE_SIZE)
     {
-        std::cout << "************************* " << "Loop " << count << " ***********************" << std::endl;
-        count++;
-        std::cout << "File pointer " << file.tellg() << " ,Ended " << file.eof() << std::endl;
-        
         RecordBatch temp_batch(file);
 
         for (auto &record : temp_batch.records)
