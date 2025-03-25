@@ -188,6 +188,8 @@ DescribeTopicPartitionsResponseBodyV0::Topic LogParser::extractTopicPartitionRec
     {
         std::cout << "************************* " << "Loop " << count << " ***********************" << std::endl;
         count++;
+        std::cout << "File pointer " << file.tellg() << " ,Ended " << file.eof() << std::endl;
+        
         RecordBatch temp_batch(file);
 
         for (auto &record : temp_batch.records)

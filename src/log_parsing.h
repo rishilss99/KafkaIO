@@ -91,6 +91,7 @@ public:
         {
             assert(true); // Should be able to open file
         }
+        std::cout << "File size: " << std::filesystem::file_size(file_path) << std::endl;
     }
 
     DescribeTopicPartitionsResponseBodyV0::Topic extractTopicPartitionRecords(int8_t topic_name_len, const std::vector<char> &topic_name);
