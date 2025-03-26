@@ -270,6 +270,7 @@ ResponseMessage processAPIVersions(const RequestHeaderV2 &request_header, const 
     constexpr size_t API_VERSIONS_SIZE = 3;
     std::vector<int16_t> supported_api_versions = {0, 1, 2, 3, 4};
     std::vector<std::array<int16_t, API_VERSIONS_SIZE>> api_key_versions;
+    api_key_versions.push_back({1, 0, 16}); // Fetch
     api_key_versions.push_back({18, 0, 4}); // APIVersions
     api_key_versions.push_back({75, 0, 4}); // DescribeTopicPartitions
 
